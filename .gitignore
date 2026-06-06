@@ -1,0 +1,17 @@
+.DS_Store
+.ipynb_checkpoints/
+.venv/
+__pycache__/
+.quarto/
+/_site/
+*.pptx
+
+# Quarto render byproducts
+*_files/
+*_cache/
+*.quarto_ipynb*
+exercises.html
+exercises_solutions.html
+
+# Annotated instructor edition (local working file, not committed)
+*with_notes*

@@ -1,0 +1,689 @@
+---
+title: "Walkthroughs and Exercises for Deep Learning for Business Made Simple"
+author: "Dr. Chester Ismay"
+format:
+  html:
+    theme: flatly
+    toc: true
+    toc-floating: true
+  ipynb: default
+engine: jupyter
+execute:
+  warning: false
+---
+
+```{python}
+#| eval: false
+# Run this once per session (Google Colab already has torch + keras).
+# We teach in Keras 3 but run it on the PyTorch backend -- friendly code, PyTorch engine.
+!pip install -q keras torch datasets scikit-learn matplotlib pillow
+```
+
+```{python}
+#| include: false
+# IMPORTANT: the backend must be chosen BEFORE keras is imported.
+import os
+os.environ["KERAS_BACKEND"] = "torch"
+
+import keras
+import numpy as np
+import pandas as pd
+
+# Display all columns and all outputs from each cell
+pd.set_option("display.max_columns", None)
+from IPython.core.interactiveshell import InteractiveShell
+InteractiveShell.ast_node_interactivity = "all"
+
+keras.utils.set_random_seed(2026)
+print("Keras", keras.__version__, "on backend:", keras.backend.backend())
+```
+
+# Intro: Getting Started with Deep Learning for Business
+
+In this course we use **Keras 3** -- a friendly, high-level deep learning API --
+running on the **PyTorch** backend. You write simple Keras code; PyTorch does the
+heavy lifting underneath. Every walkthrough also includes an **idiomatic PyTorch**
+version so you can see what the same model looks like in raw PyTorch.
+
+## Walkthrough: Setting Up Keras (PyTorch backend) and Your First Tensor
+
+### Confirm the environment
+
+```{python}
+import keras, torch
+print("Keras backend:", keras.backend.backend())   # should say 'torch'
+print("PyTorch version:", torch.__version__)
+```
+
+> **Common Pitfall:** `os.environ["KERAS_BACKEND"] = "torch"` must run **before**
+> `import keras`. If you import keras first and then set it, you'll silently get
+> the default backend. When in doubt, restart the kernel and run the setup cell first.
+
+### A first tensor operation
+
+```{python}
+# A tensor is just an array the framework can run fast math on (and learn from)
+x = keras.ops.array([[1.0, 2.0], [3.0, 4.0]])
+print("Sum of all elements:", float(keras.ops.sum(x)))
+print("Column means:", keras.ops.mean(x, axis=0))
+```
+
+## Exercise: Confirm Your Environment
+
+```{python}
+# Build a tiny one-line "model" and run data through it -- proves the stack works
+layer = keras.layers.Dense(1, activation="sigmoid")
+out = layer(keras.ops.array([[0.5, -1.2, 3.0]]))
+print("Output shape:", out.shape)
+print("If you see a (1, 1) tensor above, you are ready to go.")
+```
+
+> **GenAI tip:** If a setup cell errors, copy the *full* error plus one line of context
+> ("I'm using Keras 3 with the PyTorch backend on Colab") into your AI assistant and
+> ask for the fix. Re-run to confirm -- never trust a fix you haven't re-run.
+
+# Module 1: Demystifying Neural Networks for Business Insight
+
+We'll predict **hotel booking cancellations** -- a real revenue-management problem.
+Every cancellation is a room you could have sold. The dataset has ~119,000 real
+bookings.
+
+## Walkthrough 1.1: Predicting Booking Cancellations with a Neural Network
+
+### Load and inspect the data
+
+```{python}
+url = ("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/"
+       "data/2020/2020-02-11/hotels.csv")
+hotels = pd.read_csv(url)
+print(hotels.shape)
+hotels[["hotel", "lead_time", "adults", "previous_cancellations",
+        "adr", "is_canceled"]].head()
+```
+
+```{python}
+# How often do guests cancel? (our target)
+hotels["is_canceled"].value_counts(normalize=True).round(3)
+```
+
+### Prepare the features
+
+```{python}
+# A handful of numeric drivers a revenue manager would recognize
+features = ["lead_time", "stays_in_weekend_nights", "stays_in_week_nights",
+            "adults", "previous_cancellations", "booking_changes",
+            "total_of_special_requests", "adr"]
+
+data = hotels[features + ["is_canceled"]].dropna().copy()
+X = data[features].values.astype("float32")
+y = data["is_canceled"].values.astype("float32")
+
+# Neural networks train far better on standardized inputs
+mean, std = X.mean(axis=0), X.std(axis=0) + 1e-8
+X = (X - mean) / std
+
+from sklearn.model_selection import train_test_split
+X_train, X_val, y_train, y_val = train_test_split(
+    X, y, test_size=0.2, random_state=2026, stratify=y)
+print("Train:", X_train.shape, "Validation:", X_val.shape)
+```
+
+> **Common Pitfall:** Standardize using statistics from the **training** data only,
+> then apply the same shift/scale to validation and new data. Computing the mean on
+> all the data leaks information about the future into training.
+
+### Build, train, and evaluate the network
+
+```{python}
+model = keras.Sequential([
+    keras.layers.Input(shape=(len(features),)),
+    keras.layers.Dense(32, activation="relu"),   # a "team of specialists"
+    keras.layers.Dense(16, activation="relu"),
+    keras.layers.Dense(1, activation="sigmoid"),  # probability of cancellation
+])
+model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
+model.summary()
+```
+
+```{python}
+history = model.fit(X_train, y_train, validation_data=(X_val, y_val),
+                    epochs=10, batch_size=256, verbose=0)
+print("Final validation accuracy:",
+      round(float(history.history["val_accuracy"][-1]), 3))
+```
+
+```{python}
+import matplotlib.pyplot as plt
+plt.plot(history.history["loss"], label="train loss")
+plt.plot(history.history["val_loss"], label="validation loss")
+plt.xlabel("epoch"); plt.ylabel("loss"); plt.legend()
+plt.title("The falling loss IS the model learning")
+plt.show()
+```
+
+### Visualize: can the model tell the two groups apart?
+
+```{python}
+# A model that "separates" the classes pushes cancellations toward 1 and the rest
+# toward 0. Overlapping histograms = an indecisive model.
+val_probs = model.predict(X_val, verbose=0).ravel()
+plt.hist(val_probs[y_val == 0], bins=30, alpha=0.6, label="actually kept")
+plt.hist(val_probs[y_val == 1], bins=30, alpha=0.6, label="actually canceled")
+plt.axvline(0.5, color="k", ls="--", lw=1, label="default threshold")
+plt.xlabel("predicted cancellation probability"); plt.ylabel("number of bookings")
+plt.legend(); plt.title("Separation is the model's confidence, made visible")
+plt.show()
+```
+
+### The same model in idiomatic PyTorch (reference)
+
+```{python}
+import torch
+import torch.nn as nn
+from torch.utils.data import TensorDataset, DataLoader
+
+Xtr = torch.tensor(X_train); ytr = torch.tensor(y_train).unsqueeze(1)
+Xva = torch.tensor(X_val);   yva = torch.tensor(y_val).unsqueeze(1)
+
+# Idiomatic PyTorch feeds the model mini-batches via a DataLoader
+train_dl = DataLoader(TensorDataset(Xtr, ytr), batch_size=256, shuffle=True)
+
+net = nn.Sequential(
+    nn.Linear(len(features), 32), nn.ReLU(),
+    nn.Linear(32, 16), nn.ReLU(),
+    nn.Linear(16, 1),               # logits; we use BCEWithLogitsLoss below
+)
+opt = torch.optim.Adam(net.parameters(), lr=1e-3)
+loss_fn = nn.BCEWithLogitsLoss()
+
+for epoch in range(10):
+    net.train()
+    for xb, yb in train_dl:                    # one gradient step per mini-batch
+        opt.zero_grad()
+        loss = loss_fn(net(xb), yb)
+        loss.backward()
+        opt.step()
+
+net.eval()
+with torch.no_grad():
+    val_acc = ((torch.sigmoid(net(Xva)) > 0.5).float() == yva).float().mean().item()
+print("PyTorch validation accuracy:", round(val_acc, 3))
+```
+
+> **Notice:** Keras handled the training loop for you; in raw PyTorch you write
+> the `DataLoader` and the `zero_grad -> forward -> loss -> backward -> step` loop
+> yourself. Same model, same mini-batching -- just more control and more code.
+
+## Exercise 1.1: Predicting Average Daily Rate (Regression)
+
+Now the target is a **number** -- the average daily rate (`adr`), i.e. price. The
+same network shape works; we just change the last layer and the loss.
+
+```{python}
+reg = hotels[features].copy()
+reg_target = hotels["adr"].astype("float32")
+keep = reg.notna().all(axis=1) & reg_target.notna() & (hotels["adr"].between(0, 1000))
+Xr = reg[keep].drop(columns=["adr"]).values.astype("float32")
+yr = reg_target[keep].values
+Xr = (Xr - Xr.mean(0)) / (Xr.std(0) + 1e-8)
+
+Xr_tr, Xr_va, yr_tr, yr_va = train_test_split(Xr, yr, test_size=0.2, random_state=2026)
+
+reg_model = keras.Sequential([
+    keras.layers.Input(shape=(Xr.shape[1],)),
+    keras.layers.Dense(32, activation="relu"),
+    keras.layers.Dense(16, activation="relu"),
+    keras.layers.Dense(1),                    # no activation -> predict any number
+])
+reg_model.compile(optimizer="adam", loss="mse", metrics=["mae"])
+reg_hist = reg_model.fit(Xr_tr, yr_tr, validation_data=(Xr_va, yr_va),
+                         epochs=10, batch_size=256, verbose=0)
+print("Validation MAE (dollars off, on average):",
+      round(float(reg_hist.history["val_mae"][-1]), 2))
+```
+
+```{python}
+# Predicted vs actual price: points on the dashed line are perfect predictions
+pred_adr = reg_model.predict(Xr_va, verbose=0).ravel()
+plt.scatter(yr_va, pred_adr, s=6, alpha=0.25)
+lim = [0, 400]
+plt.plot(lim, lim, "r--", label="perfect prediction")
+plt.xlim(lim); plt.ylim(lim)
+plt.xlabel("actual ADR ($)"); plt.ylabel("predicted ADR ($)")
+plt.legend(); plt.title("Where the price model is tight -- and where it drifts")
+plt.show()
+```
+
+> **Common Pitfall:** For regression, the output layer has **no activation** and the
+> loss is `mse` (or `mae`) -- not `sigmoid` + `binary_crossentropy`. Using a sigmoid
+> here would squash every prediction between 0 and 1.
+
+### Interpretation Questions
+
+1. The classification model reaches ~78-80% accuracy. With ~63% of bookings *not*
+   canceled, is that a strong result? (Hint: what would "always predict not-canceled"
+   score? We dig into this in Module 4.)
+2. The regression model's MAE is in **dollars**. Is being off by that much acceptable
+   for a pricing decision? Where would it need to be tighter?
+3. Which features would you add to improve either model -- and which might be
+   *leakage* (information you wouldn't have at booking time)?
+
+### Self-Check
+
+By the end of this module, you should be able to:
+
+- [ ] Load a business dataset and standardize numeric features for a network
+- [ ] Build, compile, and train a feedforward network in Keras
+- [ ] Switch a model between **classification** (sigmoid + cross-entropy) and **regression** (no activation + MSE)
+- [ ] Read a falling loss curve as evidence of learning
+- [ ] Recognize the same model written in idiomatic PyTorch
+
+# Module 2: Deep Learning for Images and Customer Experience
+
+Direct application: **auto-tagging product/food photos** -- the kind of task behind
+delivery-app menus, retail catalogs, and visual search. We use the **Food-101**
+dataset and a **pre-trained** convolutional network, so we get strong results without
+training on millions of images ourselves (transfer learning).
+
+## Walkthrough 2.1: Auto-Tagging Photos with a Pre-Trained CNN
+
+### Grab a few images
+
+```{python}
+from datasets import load_dataset
+from PIL import Image
+
+food = load_dataset("ethz/food101", split="train", streaming=True)
+class_names = food.features["label"].names
+
+samples = []
+for row in food:
+    samples.append(row)
+    if len(samples) >= 6:
+        break
+print("Example categories in this dataset:", class_names[:8], "...")
+```
+
+### Let a pre-trained model label them
+
+```{python}
+from keras.applications.mobilenet_v2 import (
+    MobileNetV2, preprocess_input, decode_predictions)
+
+pretrained = MobileNetV2(weights="imagenet")   # trained on millions of images
+
+def predict_label(pil_img):
+    img = pil_img.convert("RGB").resize((224, 224))
+    arr = preprocess_input(np.array(img, dtype="float32")[None])
+    top = decode_predictions(pretrained.predict(arr, verbose=0), top=1)[0][0]
+    return top[1], round(float(top[2]), 2)   # (label, confidence)
+
+for row in samples[:4]:
+    guess, conf = predict_label(row["image"])
+    print(f"true: {class_names[row['label']]:<18} model guess: {guess} ({conf})")
+```
+
+```{python}
+# Show the images with the model's guess -- seeing the picture makes the result land
+import matplotlib.pyplot as plt
+fig, axes = plt.subplots(1, 4, figsize=(12, 3.2))
+for ax, row in zip(axes, samples[:4]):
+    guess, conf = predict_label(row["image"])
+    ax.imshow(row["image"]); ax.axis("off")
+    ax.set_title(f"true: {class_names[row['label']]}\nguess: {guess} ({conf})", fontsize=9)
+plt.tight_layout(); plt.show()
+```
+
+> **Common Pitfall:** Every pre-trained model expects its **own** preprocessing and
+> input size (here 224x224 and `preprocess_input`). Skip it and predictions look
+> random. When you swap models, swap the matching `preprocess_input`.
+
+## Exercise 2.1: Fine-Tune a Classifier for *Your* Categories
+
+The pre-trained model knows ImageNet labels, not *your* product categories. Transfer
+learning fixes that: keep the model's general "vision," retrain only a small new head
+on your few categories.
+
+```{python}
+# Build a small labeled set from 3 food categories (your "product catalog")
+wanted = ["pizza", "hamburger", "sushi"]
+want_idx = {class_names.index(w): i for i, w in enumerate(wanted)}
+
+imgs, labels = [], []
+counts = {k: 0 for k in want_idx}
+for row in load_dataset("ethz/food101", split="train", streaming=True):
+    lab = row["label"]
+    if lab in want_idx and counts[lab] < 120:
+        imgs.append(np.array(row["image"].convert("RGB").resize((160, 160)), "float32"))
+        labels.append(want_idx[lab]); counts[lab] += 1
+    if all(c >= 120 for c in counts.values()):
+        break
+X_img = np.stack(imgs); y_img = np.array(labels)
+Xi_tr, Xi_va, yi_tr, yi_va = train_test_split(
+    X_img, y_img, test_size=0.25, random_state=2026, stratify=y_img)
+print("Training images:", Xi_tr.shape, "across", len(wanted), "categories")
+```
+
+```{python}
+# Freeze the pre-trained base; train only a new classification head
+base = MobileNetV2(input_shape=(160, 160, 3), include_top=False, weights="imagenet")
+base.trainable = False
+
+clf = keras.Sequential([
+    keras.layers.Input(shape=(160, 160, 3)),
+    keras.layers.Lambda(preprocess_input),
+    base,
+    keras.layers.GlobalAveragePooling2D(),
+    keras.layers.Dropout(0.2),
+    keras.layers.Dense(len(wanted), activation="softmax"),
+])
+clf.compile(optimizer="adam", loss="sparse_categorical_crossentropy",
+            metrics=["accuracy"])
+clf.fit(Xi_tr, yi_tr, validation_data=(Xi_va, yi_va),
+        epochs=5, batch_size=16, verbose=0)
+print("Validation accuracy:", round(float(clf.evaluate(Xi_va, yi_va, verbose=0)[1]), 3))
+```
+
+```{python}
+# Show 6 validation photos with the fine-tuned model's call (green = right, red = wrong)
+val_pred = clf.predict(Xi_va, verbose=0).argmax(axis=1)
+fig, axes = plt.subplots(1, 6, figsize=(14, 2.8))
+for ax, img, true_i, pred_i in zip(axes, Xi_va[:6], yi_va[:6], val_pred[:6]):
+    ax.imshow(img.astype("uint8")); ax.axis("off")
+    ok = (true_i == pred_i)
+    ax.set_title(f"{wanted[pred_i]}", color="green" if ok else "red", fontsize=10)
+plt.suptitle("Fine-tuned model on YOUR categories"); plt.tight_layout(); plt.show()
+```
+
+> **Common Pitfall:** Keep the pre-trained base **frozen** (`base.trainable = False`)
+> when you have little data. Unfreezing everything with a few hundred images usually
+> overfits fast and *erases* the valuable general features.
+
+### Idiomatic PyTorch (reference): transfer learning with torchvision
+
+```{python}
+#| eval: false
+# Equivalent pattern in raw PyTorch (run in an environment with torchvision):
+import torch, torch.nn as nn
+from torchvision import models, transforms
+
+weights = models.MobileNet_V2_Weights.IMAGENET1K_V1
+net = models.mobilenet_v2(weights=weights)
+for p in net.parameters():            # freeze the base
+    p.requires_grad = False
+net.classifier[1] = nn.Linear(net.last_channel, len(wanted))  # new head
+
+prep = weights.transforms()           # the model's own preprocessing
+opt = torch.optim.Adam(net.classifier.parameters(), lr=1e-3)
+loss_fn = nn.CrossEntropyLoss()
+# ... standard train loop: for each batch -> opt.zero_grad(); loss.backward(); opt.step()
+```
+
+### Interpretation Questions
+
+1. The pre-trained model often guesses a *close* ImageNet label (e.g. "plate",
+   "pizza") even before fine-tuning. Why is that "general vision" so reusable?
+2. With only 120 images per class, fine-tuning still does well. What does that imply
+   for a small business that can't label millions of photos?
+3. Where would automated image tagging save real time in your organization?
+
+### Self-Check
+
+By the end of this module, you should be able to:
+
+- [ ] Use a pre-trained CNN to classify images with the correct preprocessing
+- [ ] Explain transfer learning in business terms ("reuse, don't reinvent")
+- [ ] Fine-tune a frozen base on a small set of your own categories
+- [ ] Recognize when freezing the base prevents overfitting
+
+# Module 3: Deep Learning for Text and Customer Sentiment
+
+Direct application: **reading customer sentiment at scale** from reviews and support
+text. We use real **Yelp business reviews**.
+
+## Walkthrough 3.1: Sentiment from Reviews with Word Embeddings
+
+### Load real reviews
+
+```{python}
+from datasets import load_dataset
+
+stream = load_dataset("fancyzhx/yelp_polarity", split="train", streaming=True)
+texts, sentiments = [], []
+for i, row in enumerate(stream):
+    texts.append(row["text"]); sentiments.append(row["label"])  # 0 = negative, 1 = positive
+    if i >= 5999:
+        break
+sentiments = np.array(sentiments, dtype="float32")
+print("Loaded", len(texts), "reviews. Example:")
+print(texts[0][:160], "...")
+```
+
+### Turn words into numbers (a simple tokenizer)
+
+```{python}
+from collections import Counter
+
+def build_vocab(texts, max_tokens=10000):
+    counts = Counter(w for t in texts for w in t.lower().split())
+    # 0 = padding, 1 = unknown/out-of-vocabulary
+    return {w: i + 2 for i, (w, _) in enumerate(counts.most_common(max_tokens - 2))}
+
+def encode(texts, vocab, max_len=150):
+    out = np.zeros((len(texts), max_len), dtype="int64")
+    for i, t in enumerate(texts):
+        ids = [vocab.get(w, 1) for w in t.lower().split()][:max_len]
+        out[i, :len(ids)] = ids
+    return out
+
+VOCAB_SIZE, MAX_LEN = 10000, 150
+vocab = build_vocab(texts, VOCAB_SIZE)
+X_text = encode(texts, vocab, MAX_LEN)
+Xt_tr, Xt_va, yt_tr, yt_va = train_test_split(
+    X_text, sentiments, test_size=0.2, random_state=2026, stratify=sentiments)
+print("Encoded shape:", X_text.shape)
+```
+
+> **Common Pitfall:** Keras 3's `TextVectorization` layer needs TensorFlow installed,
+> even on the PyTorch backend. A small tokenizer like this keeps the project
+> backend-pure -- and shows exactly what "turning text into numbers" means.
+
+### Build an embedding model
+
+```{python}
+text_model = keras.Sequential([
+    keras.layers.Input(shape=(MAX_LEN,)),
+    keras.layers.Embedding(VOCAB_SIZE, 32),        # the "meaning as numbers" map
+    keras.layers.GlobalAveragePooling1D(),
+    keras.layers.Dense(32, activation="relu"),
+    keras.layers.Dense(1, activation="sigmoid"),
+])
+text_model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
+text_hist = text_model.fit(Xt_tr, yt_tr, validation_data=(Xt_va, yt_va),
+                           epochs=5, batch_size=64, verbose=0)
+print("Validation accuracy:", round(float(text_hist.history["val_accuracy"][-1]), 3))
+```
+
+### Try it on your own sentences
+
+```{python}
+def sentiment_of(sentence):
+    ids = encode([sentence], vocab, MAX_LEN)
+    p = float(text_model.predict(ids, verbose=0)[0][0])
+    return f"{'positive' if p > 0.5 else 'negative'} ({p:.2f})"
+
+for s in ["The staff were friendly and the food arrived hot",
+          "Waited an hour and the order was completely wrong"]:
+    print(sentiment_of(s), "<-", s)
+```
+
+```{python}
+# A bar chart turns raw probabilities into something you can show a stakeholder
+examples = ["The staff were friendly and the food arrived hot",
+            "Best brunch in the neighborhood, will be back",
+            "Waited an hour and the order was completely wrong",
+            "Overpriced and the room was not clean"]
+scores = [float(text_model.predict(encode([s], vocab, MAX_LEN), verbose=0)[0][0])
+          for s in examples]
+colors = ["seagreen" if p > 0.5 else "indianred" for p in scores]
+plt.barh(range(len(examples)), scores, color=colors)
+plt.yticks(range(len(examples)), [s[:32] + "..." for s in examples], fontsize=8)
+plt.axvline(0.5, color="k", ls="--", lw=1)
+plt.xlabel("predicted positivity"); plt.xlim(0, 1)
+plt.title("Sentiment score per review"); plt.tight_layout(); plt.show()
+```
+
+### Idiomatic PyTorch (reference)
+
+```{python}
+import torch, torch.nn as nn
+from torch.utils.data import TensorDataset, DataLoader
+
+class SentimentNet(nn.Module):
+    def __init__(self, vocab_size, embed_dim=32):
+        super().__init__()
+        self.embed = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
+        self.fc1 = nn.Linear(embed_dim, 32)
+        self.fc2 = nn.Linear(32, 1)
+    def forward(self, x):
+        e = self.embed(x).mean(dim=1)          # average the word vectors
+        return self.fc2(torch.relu(self.fc1(e)))  # logits
+
+pt = SentimentNet(VOCAB_SIZE)
+opt = torch.optim.Adam(pt.parameters(), lr=1e-3); loss_fn = nn.BCEWithLogitsLoss()
+
+train_dl = DataLoader(                          # mini-batches, just like Keras uses
+    TensorDataset(torch.tensor(Xt_tr), torch.tensor(yt_tr).unsqueeze(1)),
+    batch_size=64, shuffle=True)
+for epoch in range(5):
+    for xb, yb in train_dl:
+        opt.zero_grad(); loss = loss_fn(pt(xb), yb); loss.backward(); opt.step()
+with torch.no_grad():
+    acc = ((torch.sigmoid(pt(torch.tensor(Xt_va))) > 0.5).float()
+           == torch.tensor(yt_va).unsqueeze(1)).float().mean().item()
+print("PyTorch validation accuracy:", round(acc, 3))
+```
+
+## Exercise 3.1: Improve and Stress-Test the Model
+
+```{python}
+# Idea 1: more vocabulary and a longer window often help -- try it
+VOCAB2, LEN2 = 15000, 200
+vocab2 = build_vocab(texts, VOCAB2)
+X2 = encode(texts, vocab2, LEN2)
+X2_tr, X2_va, _, _ = train_test_split(X2, sentiments, test_size=0.2, random_state=2026,
+                                      stratify=sentiments)
+model2 = keras.Sequential([
+    keras.layers.Input(shape=(LEN2,)),
+    keras.layers.Embedding(VOCAB2, 32),
+    keras.layers.GlobalAveragePooling1D(),
+    keras.layers.Dense(32, activation="relu"),
+    keras.layers.Dense(1, activation="sigmoid"),
+])
+model2.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
+h2 = model2.fit(X2_tr, yt_tr, validation_data=(X2_va, yt_va),
+                epochs=5, batch_size=64, verbose=0)
+print("Bigger-vocab validation accuracy:", round(float(h2.history["val_accuracy"][-1]), 3))
+```
+
+> **GenAI tip:** Paste 3-4 reviews the model gets *wrong* into an AI assistant and ask
+> "why might a simple averaging model miss the sentiment here?" -- great way to surface
+> sarcasm, negation, and context limits to discuss with the room.
+
+### Interpretation Questions
+
+1. Our model **averages** word vectors. What kinds of reviews will that miss
+   (think "not great", sarcasm, "would not recommend")?
+2. Where would automated sentiment change a decision your team makes today?
+3. When is a pre-trained LLM (just prompt it) the better tool than training this model?
+
+### Self-Check
+
+By the end of this module, you should be able to:
+
+- [ ] Turn raw text into padded integer sequences a model can use
+- [ ] Build and train an embedding-based sentiment model in Keras
+- [ ] Score new sentences and spot where a simple model struggles
+- [ ] Read the same model written as a PyTorch `nn.Module`
+
+# Module 4: Interpreting and Communicating Deep Learning Results
+
+A model is only as valuable as the trust and clarity you can put around it. We
+evaluate the **cancellation model** from Module 1 the way a business actually should.
+
+## Walkthrough 4.1: Confusion Matrix and Business Metrics
+
+```{python}
+from sklearn.metrics import (confusion_matrix, ConfusionMatrixDisplay,
+                             precision_score, recall_score, f1_score)
+
+probs = model.predict(X_val, verbose=0).ravel()
+preds = (probs > 0.5).astype(int)
+
+cm = confusion_matrix(y_val, preds)
+ConfusionMatrixDisplay(cm, display_labels=["not canceled", "canceled"]).plot(
+    cmap="Blues", colorbar=False)
+plt.title("Where the model is right -- and wrong"); plt.show()
+
+print("Precision:", round(precision_score(y_val, preds), 3),
+      "| Recall:", round(recall_score(y_val, preds), 3),
+      "| F1:", round(f1_score(y_val, preds), 3))
+```
+
+> **Common Pitfall:** Accuracy alone hides the costly errors. Read the confusion
+> matrix by **business cost**: a missed cancellation (false negative) is a room you
+> didn't resell; a false alarm (false positive) might mean wrongly hassling a guest.
+
+## Exercise 4.1: Tune the Threshold to the Business Trade-off
+
+The model outputs a *probability*. **You** decide where to draw the line -- and that
+choice is a business decision, not a default of 0.5.
+
+```{python}
+print(f"{'threshold':>10} {'precision':>10} {'recall':>8}")
+for thr in [0.3, 0.4, 0.5, 0.6, 0.7]:
+    p = (probs > thr).astype(int)
+    print(f"{thr:>10} {precision_score(y_val, p):>10.3f} {recall_score(y_val, p):>8.3f}")
+```
+
+```{python}
+# The trade-off, drawn: as the line moves left, you catch more but cry wolf more
+grid = np.linspace(0.1, 0.9, 33)
+prec = [precision_score(y_val, (probs > t).astype(int), zero_division=0) for t in grid]
+rec = [recall_score(y_val, (probs > t).astype(int)) for t in grid]
+plt.plot(grid, prec, label="precision")
+plt.plot(grid, rec, label="recall")
+plt.axvline(0.35, color="k", ls="--", lw=1, label="a recall-leaning choice")
+plt.xlabel("decision threshold"); plt.ylabel("score"); plt.legend()
+plt.title("Precision vs recall is a dial you set to the business cost")
+plt.show()
+```
+
+```{python}
+# Suppose missing a cancellation costs 4x a false alarm -> favor recall
+chosen = 0.35
+p = (probs > chosen).astype(int)
+print(f"At threshold {chosen}: we catch {recall_score(y_val, p):.0%} of cancellations, "
+      f"with precision {precision_score(y_val, p):.0%}.")
+```
+
+> **GenAI tip:** Feed these numbers to an AI assistant and ask for a 3-sentence
+> executive summary: the decision, the impact, and the main risk. Then fact-check
+> every number it repeats before it goes in a deck.
+
+### Interpretation Questions
+
+1. As you lower the threshold, recall rises but precision falls. Which way should a
+   revenue team lean for cancellations -- and why?
+2. Write one sentence a non-technical manager would understand describing what this
+   model does and what it's worth.
+3. What would you monitor after deployment to catch the model going stale (drift)?
+
+### Self-Check
+
+By the end of this module, you should be able to:
+
+- [ ] Build and read a confusion matrix in business terms
+- [ ] Compute precision, recall, and F1 -- and say when accuracy misleads
+- [ ] Tune a decision threshold to a stated business cost
+- [ ] Turn model results into a clear, honest stakeholder summary

@@ -1,0 +1,9 @@
+keras>=3
+torch
+datasets
+scikit-learn
+matplotlib
+pillow
+numpy
+pandas
+jupyter
