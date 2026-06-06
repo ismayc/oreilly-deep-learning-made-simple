@@ -1,0 +1,66 @@
+name: Render solutions HTML
+
+# Render exercises_solutions.qmd to a self-contained exercises_solutions.html and
+# commit it, so Netlify (linked to this repo's main branch) can serve it. Rendering
+# EXECUTES the notebook (Keras 3 on the PyTorch backend), so it runs in CI rather
+# than relying on a local machine. Runs when the source changes, or on demand.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'exercises_solutions.qmd'
+      - 'requirements.txt'
+      - '.github/workflows/render-solutions.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: render-solutions
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      KERAS_BACKEND: torch
+      MPLBACKEND: Agg
+      HF_HUB_DISABLE_PROGRESS_BARS: '1'
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies (CPU torch)
+        run: |
+          python -m pip install --upgrade pip
+          # CPU-only torch keeps the install small and fast on the runner
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt jupyter ipykernel nbclient nbformat
+          python -m ipykernel install --user --name python3
+
+      - name: Render solutions to HTML (executes the notebook)
+        env:
+          QUARTO_PYTHON: python3
+        run: quarto render exercises_solutions.qmd --to html
+
+      - name: Commit & push solutions HTML if it changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f exercises_solutions.html
+          if git diff --cached --quiet; then
+            echo "exercises_solutions.html is already up to date - nothing to push."
+          else
+            git commit -m "Auto-render solutions HTML [skip actions]"
+            git push
+          fi

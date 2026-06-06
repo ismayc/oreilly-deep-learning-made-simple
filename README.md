@@ -33,7 +33,8 @@ In Colab:
 - `exercises.ipynb` — the **student** notebook: walkthroughs are worked examples to run
   and discuss; the exercises leave the instructive choices open for live coding.
 - `exercises_solutions.ipynb` — full solutions, with Keras **and** idiomatic PyTorch for
-  every example.
+  every example. A rendered HTML version is the recommended way to read the solutions:
+  **https://ismay-oreilly-dlms.netlify.app/exercises_solutions.html**
 - `exercises.qmd` / `exercises_solutions.qmd` — the Quarto sources the notebooks are
   built from.
 - `requirements.txt` — packages for running locally (Colab already has most of these).

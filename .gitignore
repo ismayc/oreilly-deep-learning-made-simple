@@ -11,7 +11,7 @@ __pycache__/
 *_cache/
 *.quarto_ipynb*
 exercises.html
-exercises_solutions.html
+# NOTE: exercises_solutions.html IS committed (rendered by CI) so it can be hosted.
 
 # Annotated instructor edition (local working file, not committed)
 *with_notes*
