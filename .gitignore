@@ -20,3 +20,7 @@ exercises.html
 
 # Deck source images (local working files; they get baked into the deck -> slides.pdf)
 _deck-images/
+# iCloud Drive conflict copies (e.g. "index 2.html") and placeholder files
+* [0-9].*
+* [0-9]
+*.icloud
