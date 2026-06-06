@@ -37,6 +37,8 @@ In Colab:
   **https://ismay-oreilly-dlms.netlify.app/exercises_solutions.html**
 - `exercises.qmd` / `exercises_solutions.qmd` — the Quarto sources the notebooks are
   built from.
+- `slides.pdf` — the slide deck used to motivate the code.
+- `index.html` — landing page (served at the site root): https://ismay-oreilly-dlms.netlify.app
 - `requirements.txt` — packages for running locally (Colab already has most of these).
 
 > The annotated instructor edition (`exercises_solutions_with_notes.qmd`) is a local
