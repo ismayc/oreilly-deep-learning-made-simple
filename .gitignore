@@ -15,3 +15,8 @@ exercises.html
 
 # Annotated instructor edition (local working file, not committed)
 *with_notes*
+
+*.docx
+
+# Deck source images (local working files; they get baked into the deck -> slides.pdf)
+_deck-images/

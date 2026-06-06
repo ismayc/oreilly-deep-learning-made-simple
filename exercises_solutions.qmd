@@ -287,6 +287,27 @@ plt.show()
 > loss is `mse` (or `mae`) -- not `sigmoid` + `binary_crossentropy`. Using a sigmoid
 > here would squash every prediction between 0 and 1.
 
+## Walkthrough + Exercise 1.2: Use GenAI to Decode Errors and Explain Choices
+
+Models throw confusing errors while you build them, and it isn't always obvious why a
+layer is shaped the way it is. Your AI assistant is a fast debugging and explanation
+partner -- the skill is prompting clearly and **verifying** (never trust a fix you
+haven't re-run).
+
+**A prompt to start from** (paste into your AI assistant, then iterate):
+
+> I'm using Keras 3 on the PyTorch backend. Here is my code and the full error message:
+> [paste]. Explain the cause in plain English, give the smallest fix, then explain in one
+> sentence each what my hidden Dense layers and the sigmoid output layer are doing.
+
+```{python}
+# Scratch space for 1.2 -- paste an error or a model summary here and work with your
+# AI assistant. (Nothing to run yet; this cell is yours to experiment in.)
+```
+
+> **GenAI tip:** Apply the suggested fix, then **re-run the cell** to confirm it works.
+> If the assistant invents a function or argument, check it against the Keras docs.
+
 ### Interpretation Questions
 
 1. The classification model reaches ~78-80% accuracy. With ~63% of bookings *not*
@@ -456,6 +477,24 @@ opt = torch.optim.Adam(net.classifier.parameters(), lr=1e-3)
 loss_fn = nn.CrossEntropyLoss()
 # ... standard train loop: for each batch -> opt.zero_grad(); loss.backward(); opt.step()
 ```
+
+## Walkthrough + Exercise 2.2: Use GenAI to Explain Layers and Suggest Improvements
+
+Use your AI assistant to demystify a model's architecture and weigh changes for your own
+use case -- then test, don't just trust.
+
+**A prompt to start from:**
+
+> Here is my Keras model summary: [paste the output of `clf.summary()`]. Explain what each
+> layer does in business terms. Then suggest one change to improve accuracy and one to make
+> the model smaller or faster, and describe the trade-offs of each.
+
+```{python}
+# Scratch space for 2.2 -- paste clf.summary() output here, or try a suggested tweak.
+```
+
+> **GenAI tip:** Apply only ONE suggested change at a time and re-evaluate, so you can see
+> what actually helped.
 
 ### Interpretation Questions
 
@@ -660,6 +699,25 @@ for s in tricky:
 > "why might a simple averaging model miss the sentiment here?" -- great way to surface
 > sarcasm, negation, and context limits to discuss with the room.
 
+## Walkthrough + Exercise 3.2: Use GenAI to Summarize Sentiment for Stakeholders
+
+The value of a sentiment model is the decision it informs. Use your AI assistant to turn
+raw numbers into a short narrative two different audiences can act on.
+
+**A prompt to start from:**
+
+> Here are my sentiment results: [paste the validation accuracy and 3-4 example reviews
+> with their predicted scores]. Write a 3-sentence summary for a non-technical manager --
+> what we found, why it matters, and one caution. Then write a more technical version for a
+> data analyst.
+
+```{python}
+# Scratch space for 3.2 -- assemble the numbers/examples you'll paste into your assistant.
+```
+
+> **GenAI tip:** Fact-check every number the assistant repeats before it goes in a deck --
+> it will sometimes "round" or invent figures.
+
 ### Interpretation Questions
 
 1. Our model **averages** word vectors. What kinds of reviews will that miss
@@ -747,6 +805,24 @@ print(f"At threshold {chosen}: we catch {recall_score(y_val, p):.0%} of cancella
 > **GenAI tip:** Feed these numbers to an AI assistant and ask for a 3-sentence
 > executive summary: the decision, the impact, and the main risk. Then fact-check
 > every number it repeats before it goes in a deck.
+
+## Walkthrough + Exercise 4.2: Use GenAI to Draft an Executive Summary
+
+Turn your evaluation into a decision-ready brief. The assistant drafts; you verify and own
+the recommendation.
+
+**A prompt to start from:**
+
+> Given these results -- precision [X] and recall [Y] at a decision threshold of [T], where
+> missing a cancellation costs about 4x a false alarm -- write a 3-sentence executive
+> summary: the decision, the business impact, and the main risk. Keep it jargon-free.
+
+```{python}
+# Scratch space for 4.2 -- paste your chosen threshold's precision/recall here.
+```
+
+> **GenAI tip:** Check the draft against what the model actually showed -- the numbers, and
+> whether the recommendation matches your stated business cost.
 
 ### Interpretation Questions
 
