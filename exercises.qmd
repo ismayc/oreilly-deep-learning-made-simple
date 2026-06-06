@@ -28,8 +28,7 @@ itself when you run its cell.
 ```
 
 ```{python}
-#| include: false
-# IMPORTANT: the backend must be chosen BEFORE keras is imported.
+# Run this setup cell FIRST. The backend must be chosen BEFORE keras is imported.
 import os
 os.environ["KERAS_BACKEND"] = "torch"
 
@@ -191,14 +190,16 @@ same network shape works; you just change the last layer and the loss.
 
 ```{python}
 # Data prep is the same recipe as the walkthrough -- run it and move on.
-reg = hotels[features].copy()
-reg_target = hotels["adr"].astype("float32")
-keep = reg.notna().all(axis=1) & reg_target.notna() & (hotels["adr"].between(0, 1000))
-Xr = reg[keep].drop(columns=["adr"]).values.astype("float32")
-yr = reg_target[keep].values
-Xr = (Xr - Xr.mean(0)) / (Xr.std(0) + 1e-8)
-Xr_tr, Xr_va, yr_tr, yr_va = train_test_split(Xr, yr, test_size=0.2, random_state=2026)
-print("Regression features:", Xr.shape)
+reg_features = hotels[features].copy()
+adr_price = hotels["adr"].astype("float32")
+# Keep rows with no missing features, a valid price, and a sensible range (drop outliers > $1000)
+keep = reg_features.notna().all(axis=1) & adr_price.notna() & (hotels["adr"].between(0, 1000))
+X_reg = reg_features[keep].drop(columns=["adr"]).values.astype("float32")
+y_reg = adr_price[keep].values
+X_reg = (X_reg - X_reg.mean(0)) / (X_reg.std(0) + 1e-8)
+X_reg_train, X_reg_val, y_reg_train, y_reg_val = train_test_split(
+    X_reg, y_reg, test_size=0.2, random_state=2026)
+print("Regression features:", X_reg.shape)
 ```
 
 ```{python}
@@ -207,13 +208,13 @@ print("Regression features:", Xr.shape)
 #   * the output Dense layer's activation (what lets it predict ANY dollar amount?)
 #   * the loss function (which loss measures dollars-off?)
 reg_model = keras.Sequential([
-    keras.layers.Input(shape=(Xr.shape[1],)),
+    keras.layers.Input(shape=(X_reg.shape[1],)),
     keras.layers.Dense(32, activation="relu"),
     keras.layers.Dense(16, activation="relu"),
     keras.layers.Dense(1),                    # <- your call: activation here, or none?
 ])
 reg_model.compile(optimizer="adam", loss="mse", metrics=["mae"])   # <- your call: which loss?
-reg_hist = reg_model.fit(Xr_tr, yr_tr, validation_data=(Xr_va, yr_va),
+reg_hist = reg_model.fit(X_reg_train, y_reg_train, validation_data=(X_reg_val, y_reg_val),
                          epochs=10, batch_size=256, verbose=0)
 print("Validation MAE (dollars off, on average):",
       round(float(reg_hist.history["val_mae"][-1]), 2))
@@ -221,8 +222,8 @@ print("Validation MAE (dollars off, on average):",
 
 ```{python}
 # Visualize results: predicted vs actual price (points on the dashed line = perfect)
-pred_adr = reg_model.predict(Xr_va, verbose=0).ravel()
-plt.scatter(yr_va, pred_adr, s=6, alpha=0.25)
+pred_adr = reg_model.predict(X_reg_val, verbose=0).ravel()
+plt.scatter(y_reg_val, pred_adr, s=6, alpha=0.25)
 lim = [0, 400]
 plt.plot(lim, lim, "r--", label="perfect prediction")
 plt.xlim(lim); plt.ylim(lim)
@@ -291,7 +292,8 @@ pretrained = MobileNetV2(weights="imagenet")   # trained on millions of images
 
 def predict_label(pil_img):
     img = pil_img.convert("RGB").resize((224, 224))
-    arr = preprocess_input(np.array(img, dtype="float32")[None])
+    batch = np.array(img, dtype="float32")[None]   # [None] wraps one image in a batch of 1
+    arr = preprocess_input(batch)                  # the preprocessing this model expects
     top = decode_predictions(pretrained.predict(arr, verbose=0), top=1)[0][0]
     return top[1], round(float(top[2]), 2)   # (label, confidence)
 
@@ -325,22 +327,26 @@ on your few categories.
 # YOUR CALL: pick 3 categories that exist in class_names (print class_names to browse).
 # Swap these for whatever "product catalog" you want to recognize.
 wanted = ["pizza", "hamburger", "sushi"]
-want_idx = {class_names.index(w): i for i, w in enumerate(wanted)}
+# Map each Food-101 category index to a fresh 0/1/2 label for our 3-class problem
+want_idx = {class_names.index(name): new_label for new_label, name in enumerate(wanted)}
 
 # Build a small labeled set (~120 images each) -- run this to assemble your data.
 imgs, labels = [], []
-counts = {k: 0 for k in want_idx}
+counts = {category: 0 for category in want_idx}     # how many we've collected per category
 for row in load_dataset("ethz/food101", split="train", streaming=True):
-    lab = row["label"]
-    if lab in want_idx and counts[lab] < 120:
+    category = row["label"]
+    if category in want_idx and counts[category] < 120:   # cap at 120 images each
         imgs.append(np.array(row["image"].convert("RGB").resize((160, 160)), "float32"))
-        labels.append(want_idx[lab]); counts[lab] += 1
+        labels.append(want_idx[category])
+        counts[category] += 1
     if all(c >= 120 for c in counts.values()):
         break
-X_img = np.stack(imgs); y_img = np.array(labels)
-Xi_tr, Xi_va, yi_tr, yi_va = train_test_split(
+
+X_img = np.stack(imgs)
+y_img = np.array(labels)
+X_img_train, X_img_val, y_img_train, y_img_val = train_test_split(
     X_img, y_img, test_size=0.25, random_state=2026, stratify=y_img)
-print("Training images:", Xi_tr.shape, "across", len(wanted), "categories")
+print("Training images:", X_img_train.shape, "across", len(wanted), "categories")
 ```
 
 ```{python}
@@ -359,16 +365,16 @@ clf = keras.Sequential([
 ])
 clf.compile(optimizer="adam", loss="sparse_categorical_crossentropy",
             metrics=["accuracy"])
-clf.fit(Xi_tr, yi_tr, validation_data=(Xi_va, yi_va),
+clf.fit(X_img_train, y_img_train, validation_data=(X_img_val, y_img_val),
         epochs=5, batch_size=16, verbose=0)
-print("Validation accuracy:", round(float(clf.evaluate(Xi_va, yi_va, verbose=0)[1]), 3))
+print("Validation accuracy:", round(float(clf.evaluate(X_img_val, y_img_val, verbose=0)[1]), 3))
 ```
 
 ```{python}
 # Visualize: 6 validation photos with the model's call (green = right, red = wrong)
-val_pred = clf.predict(Xi_va, verbose=0).argmax(axis=1)
+val_pred = clf.predict(X_img_val, verbose=0).argmax(axis=1)
 fig, axes = plt.subplots(1, 6, figsize=(14, 2.8))
-for ax, img, true_i, pred_i in zip(axes, Xi_va[:6], yi_va[:6], val_pred[:6]):
+for ax, img, true_i, pred_i in zip(axes, X_img_val[:6], y_img_val[:6], val_pred[:6]):
     ax.imshow(img.astype("uint8")); ax.axis("off")
     ax.set_title(wanted[pred_i], color="green" if true_i == pred_i else "red", fontsize=10)
 plt.suptitle("Fine-tuned model on YOUR categories"); plt.tight_layout(); plt.show()
@@ -424,21 +430,22 @@ print(texts[0][:160], "...")
 from collections import Counter
 
 def build_vocab(texts, max_tokens=10000):
-    counts = Counter(w for t in texts for w in t.lower().split())
-    # 0 = padding, 1 = unknown/out-of-vocabulary
-    return {w: i + 2 for i, (w, _) in enumerate(counts.most_common(max_tokens - 2))}
+    # Count how often each word appears across every review
+    counts = Counter(word for text in texts for word in text.lower().split())
+    # Give each common word an ID, starting at 2 so 0 stays "padding" and 1 stays "unknown"
+    return {word: i + 2 for i, (word, _) in enumerate(counts.most_common(max_tokens - 2))}
 
 def encode(texts, vocab, max_len=150):
-    out = np.zeros((len(texts), max_len), dtype="int64")
-    for i, t in enumerate(texts):
-        ids = [vocab.get(w, 1) for w in t.lower().split()][:max_len]
+    out = np.zeros((len(texts), max_len), dtype="int64")   # rows of zeros = pre-padded
+    for i, text in enumerate(texts):
+        ids = [vocab.get(word, 1) for word in text.lower().split()][:max_len]  # 1 = unknown word
         out[i, :len(ids)] = ids
     return out
 
 VOCAB_SIZE, MAX_LEN = 10000, 150
 vocab = build_vocab(texts, VOCAB_SIZE)
 X_text = encode(texts, vocab, MAX_LEN)
-Xt_tr, Xt_va, yt_tr, yt_va = train_test_split(
+X_text_train, X_text_val, y_text_train, y_text_val = train_test_split(
     X_text, sentiments, test_size=0.2, random_state=2026, stratify=sentiments)
 print("Encoded shape:", X_text.shape)
 ```
@@ -458,7 +465,8 @@ text_model = keras.Sequential([
     keras.layers.Dense(1, activation="sigmoid"),
 ])
 text_model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
-text_hist = text_model.fit(Xt_tr, yt_tr, validation_data=(Xt_va, yt_va),
+text_hist = text_model.fit(X_text_train, y_text_train,
+                           validation_data=(X_text_val, y_text_val),
                            epochs=5, batch_size=64, verbose=0)
 print("Validation accuracy:", round(float(text_hist.history["val_accuracy"][-1]), 3))
 ```
@@ -497,22 +505,23 @@ plt.title("Sentiment score per review"); plt.tight_layout(); plt.show()
 ```{python}
 # Lever to pull: a BIGGER vocabulary and a LONGER window. Run it, then compare the
 # validation accuracy to the walkthrough -- more capacity doesn't always win.
-VOCAB2, LEN2 = 15000, 200                     # <- try other sizes and see
-vocab2 = build_vocab(texts, VOCAB2)
-X2 = encode(texts, vocab2, LEN2)
-X2_tr, X2_va, _, _ = train_test_split(X2, sentiments, test_size=0.2, random_state=2026,
-                                      stratify=sentiments)
-model2 = keras.Sequential([
-    keras.layers.Input(shape=(LEN2,)),
-    keras.layers.Embedding(VOCAB2, 32),
+BIG_VOCAB_SIZE, BIG_MAX_LEN = 15000, 200          # <- try other sizes and see
+big_vocab = build_vocab(texts, BIG_VOCAB_SIZE)
+X_big = encode(texts, big_vocab, BIG_MAX_LEN)
+X_big_train, X_big_val, y_big_train, y_big_val = train_test_split(
+    X_big, sentiments, test_size=0.2, random_state=2026, stratify=sentiments)
+big_model = keras.Sequential([
+    keras.layers.Input(shape=(BIG_MAX_LEN,)),
+    keras.layers.Embedding(BIG_VOCAB_SIZE, 32),
     keras.layers.GlobalAveragePooling1D(),
     keras.layers.Dense(32, activation="relu"),
     keras.layers.Dense(1, activation="sigmoid"),
 ])
-model2.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
-h2 = model2.fit(X2_tr, yt_tr, validation_data=(X2_va, yt_va),
-                epochs=5, batch_size=64, verbose=0)
-print("Bigger-vocab validation accuracy:", round(float(h2.history["val_accuracy"][-1]), 3))
+big_model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
+big_hist = big_model.fit(X_big_train, y_big_train,
+                         validation_data=(X_big_val, y_big_val),
+                         epochs=5, batch_size=64, verbose=0)
+print("Bigger-vocab validation accuracy:", round(float(big_hist.history["val_accuracy"][-1]), 3))
 ```
 
 ```{python}
@@ -560,6 +569,10 @@ from sklearn.metrics import (confusion_matrix, ConfusionMatrixDisplay,
 
 probs = model.predict(X_val, verbose=0).ravel()
 preds = (probs > 0.5).astype(int)
+
+# The bar to beat: always guessing the majority class ("not canceled")
+baseline = 1 - y_val.mean()
+print(f"Majority-class baseline (always 'not canceled'): {baseline:.1%} accuracy")
 
 cm = confusion_matrix(y_val, preds)
 ConfusionMatrixDisplay(cm, display_labels=["not canceled", "canceled"]).plot(

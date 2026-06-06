@@ -21,8 +21,7 @@ execute:
 ```
 
 ```{python}
-#| include: false
-# IMPORTANT: the backend must be chosen BEFORE keras is imported.
+# Run this setup cell FIRST. The backend must be chosen BEFORE keras is imported.
 import os
 os.environ["KERAS_BACKEND"] = "torch"
 
@@ -183,37 +182,51 @@ import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
 
-Xtr = torch.tensor(X_train); ytr = torch.tensor(y_train).unsqueeze(1)
-Xva = torch.tensor(X_val);   yva = torch.tensor(y_val).unsqueeze(1)
+# Convert the same train/val arrays into PyTorch tensors (the "_t" = tensor version).
+X_train_t = torch.tensor(X_train)
+y_train_t = torch.tensor(y_train).unsqueeze(1)   # shape (N,) -> (N, 1) to match the model output
+X_val_t = torch.tensor(X_val)
+y_val_t = torch.tensor(y_val).unsqueeze(1)
 
 # Idiomatic PyTorch feeds the model mini-batches via a DataLoader
-train_dl = DataLoader(TensorDataset(Xtr, ytr), batch_size=256, shuffle=True)
+train_loader = DataLoader(TensorDataset(X_train_t, y_train_t), batch_size=256, shuffle=True)
 
 net = nn.Sequential(
     nn.Linear(len(features), 32), nn.ReLU(),
     nn.Linear(32, 16), nn.ReLU(),
-    nn.Linear(16, 1),               # logits; we use BCEWithLogitsLoss below
+    nn.Linear(16, 1),               # outputs a raw score ("logit"), not a probability
 )
-opt = torch.optim.Adam(net.parameters(), lr=1e-3)
-loss_fn = nn.BCEWithLogitsLoss()
+optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
+loss_fn = nn.BCEWithLogitsLoss()    # applies the sigmoid for us, more numerically stable
 
+# Train: loop over the data 10 times, one gradient step per mini-batch
 for epoch in range(10):
     net.train()
-    for xb, yb in train_dl:                    # one gradient step per mini-batch
-        opt.zero_grad()
-        loss = loss_fn(net(xb), yb)
-        loss.backward()
-        opt.step()
+    for x_batch, y_batch in train_loader:
+        optimizer.zero_grad()                 # clear last step's gradients
+        loss = loss_fn(net(x_batch), y_batch)  # how wrong are we?
+        loss.backward()                       # measure how to improve
+        optimizer.step()                      # nudge the weights
 
+# Evaluate, one readable step at a time
 net.eval()
 with torch.no_grad():
-    val_acc = ((torch.sigmoid(net(Xva)) > 0.5).float() == yva).float().mean().item()
+    logits = net(X_val_t)                     # raw scores
+    probs = torch.sigmoid(logits)             # turn scores into probabilities
+    predicted = (probs > 0.5).float()         # 1 if "canceled", else 0
+    correct = (predicted == y_val_t).float()  # 1 where the prediction matches the truth
+    val_acc = correct.mean().item()           # fraction correct
 print("PyTorch validation accuracy:", round(val_acc, 3))
 ```
 
 > **Notice:** Keras handled the training loop for you; in raw PyTorch you write
 > the `DataLoader` and the `zero_grad -> forward -> loss -> backward -> step` loop
 > yourself. Same model, same mini-batching -- just more control and more code.
+>
+> One difference to call out: the Keras model ended in a `sigmoid`, but the PyTorch
+> model outputs a raw score (a "logit"). That's the PyTorch convention -- `BCEWithLogitsLoss`
+> folds the sigmoid in for numerical stability, so we apply `sigmoid` ourselves only
+> when we want a probability at the end.
 
 ## Exercise 1.1: Predicting Average Daily Rate (Regression)
 
@@ -221,23 +234,27 @@ Now the target is a **number** -- the average daily rate (`adr`), i.e. price. Th
 same network shape works; we just change the last layer and the loss.
 
 ```{python}
-reg = hotels[features].copy()
-reg_target = hotels["adr"].astype("float32")
-keep = reg.notna().all(axis=1) & reg_target.notna() & (hotels["adr"].between(0, 1000))
-Xr = reg[keep].drop(columns=["adr"]).values.astype("float32")
-yr = reg_target[keep].values
-Xr = (Xr - Xr.mean(0)) / (Xr.std(0) + 1e-8)
+reg_features = hotels[features].copy()
+adr_price = hotels["adr"].astype("float32")
 
-Xr_tr, Xr_va, yr_tr, yr_va = train_test_split(Xr, yr, test_size=0.2, random_state=2026)
+# Keep rows with no missing features, a valid price, and a sensible range (drop outliers > $1000)
+keep = reg_features.notna().all(axis=1) & adr_price.notna() & (hotels["adr"].between(0, 1000))
+
+X_reg = reg_features[keep].drop(columns=["adr"]).values.astype("float32")
+y_reg = adr_price[keep].values
+X_reg = (X_reg - X_reg.mean(0)) / (X_reg.std(0) + 1e-8)   # standardize, as before
+
+X_reg_train, X_reg_val, y_reg_train, y_reg_val = train_test_split(
+    X_reg, y_reg, test_size=0.2, random_state=2026)
 
 reg_model = keras.Sequential([
-    keras.layers.Input(shape=(Xr.shape[1],)),
+    keras.layers.Input(shape=(X_reg.shape[1],)),
     keras.layers.Dense(32, activation="relu"),
     keras.layers.Dense(16, activation="relu"),
     keras.layers.Dense(1),                    # no activation -> predict any number
 ])
 reg_model.compile(optimizer="adam", loss="mse", metrics=["mae"])
-reg_hist = reg_model.fit(Xr_tr, yr_tr, validation_data=(Xr_va, yr_va),
+reg_hist = reg_model.fit(X_reg_train, y_reg_train, validation_data=(X_reg_val, y_reg_val),
                          epochs=10, batch_size=256, verbose=0)
 print("Validation MAE (dollars off, on average):",
       round(float(reg_hist.history["val_mae"][-1]), 2))
@@ -245,8 +262,8 @@ print("Validation MAE (dollars off, on average):",
 
 ```{python}
 # Predicted vs actual price: points on the dashed line are perfect predictions
-pred_adr = reg_model.predict(Xr_va, verbose=0).ravel()
-plt.scatter(yr_va, pred_adr, s=6, alpha=0.25)
+pred_adr = reg_model.predict(X_reg_val, verbose=0).ravel()
+plt.scatter(y_reg_val, pred_adr, s=6, alpha=0.25)
 lim = [0, 400]
 plt.plot(lim, lim, "r--", label="perfect prediction")
 plt.xlim(lim); plt.ylim(lim)
@@ -315,7 +332,8 @@ pretrained = MobileNetV2(weights="imagenet")   # trained on millions of images
 
 def predict_label(pil_img):
     img = pil_img.convert("RGB").resize((224, 224))
-    arr = preprocess_input(np.array(img, dtype="float32")[None])
+    batch = np.array(img, dtype="float32")[None]   # [None] wraps one image in a batch of 1
+    arr = preprocess_input(batch)                  # the preprocessing this model expects
     top = decode_predictions(pretrained.predict(arr, verbose=0), top=1)[0][0]
     return top[1], round(float(top[2]), 2)   # (label, confidence)
 
@@ -348,21 +366,25 @@ on your few categories.
 ```{python}
 # Build a small labeled set from 3 food categories (your "product catalog")
 wanted = ["pizza", "hamburger", "sushi"]
-want_idx = {class_names.index(w): i for i, w in enumerate(wanted)}
+# Map each Food-101 category index to a fresh 0/1/2 label for our 3-class problem
+want_idx = {class_names.index(name): new_label for new_label, name in enumerate(wanted)}
 
 imgs, labels = [], []
-counts = {k: 0 for k in want_idx}
+counts = {category: 0 for category in want_idx}     # how many we've collected per category
 for row in load_dataset("ethz/food101", split="train", streaming=True):
-    lab = row["label"]
-    if lab in want_idx and counts[lab] < 120:
+    category = row["label"]
+    if category in want_idx and counts[category] < 120:   # cap at 120 images each
         imgs.append(np.array(row["image"].convert("RGB").resize((160, 160)), "float32"))
-        labels.append(want_idx[lab]); counts[lab] += 1
+        labels.append(want_idx[category])
+        counts[category] += 1
     if all(c >= 120 for c in counts.values()):
         break
-X_img = np.stack(imgs); y_img = np.array(labels)
-Xi_tr, Xi_va, yi_tr, yi_va = train_test_split(
+
+X_img = np.stack(imgs)
+y_img = np.array(labels)
+X_img_train, X_img_val, y_img_train, y_img_val = train_test_split(
     X_img, y_img, test_size=0.25, random_state=2026, stratify=y_img)
-print("Training images:", Xi_tr.shape, "across", len(wanted), "categories")
+print("Training images:", X_img_train.shape, "across", len(wanted), "categories")
 ```
 
 ```{python}
@@ -380,16 +402,16 @@ clf = keras.Sequential([
 ])
 clf.compile(optimizer="adam", loss="sparse_categorical_crossentropy",
             metrics=["accuracy"])
-clf.fit(Xi_tr, yi_tr, validation_data=(Xi_va, yi_va),
+clf.fit(X_img_train, y_img_train, validation_data=(X_img_val, y_img_val),
         epochs=5, batch_size=16, verbose=0)
-print("Validation accuracy:", round(float(clf.evaluate(Xi_va, yi_va, verbose=0)[1]), 3))
+print("Validation accuracy:", round(float(clf.evaluate(X_img_val, y_img_val, verbose=0)[1]), 3))
 ```
 
 ```{python}
 # Show 6 validation photos with the fine-tuned model's call (green = right, red = wrong)
-val_pred = clf.predict(Xi_va, verbose=0).argmax(axis=1)
+val_pred = clf.predict(X_img_val, verbose=0).argmax(axis=1)
 fig, axes = plt.subplots(1, 6, figsize=(14, 2.8))
-for ax, img, true_i, pred_i in zip(axes, Xi_va[:6], yi_va[:6], val_pred[:6]):
+for ax, img, true_i, pred_i in zip(axes, X_img_val[:6], y_img_val[:6], val_pred[:6]):
     ax.imshow(img.astype("uint8")); ax.axis("off")
     ok = (true_i == pred_i)
     ax.set_title(f"{wanted[pred_i]}", color="green" if ok else "red", fontsize=10)
@@ -466,21 +488,22 @@ print(texts[0][:160], "...")
 from collections import Counter
 
 def build_vocab(texts, max_tokens=10000):
-    counts = Counter(w for t in texts for w in t.lower().split())
-    # 0 = padding, 1 = unknown/out-of-vocabulary
-    return {w: i + 2 for i, (w, _) in enumerate(counts.most_common(max_tokens - 2))}
+    # Count how often each word appears across every review
+    counts = Counter(word for text in texts for word in text.lower().split())
+    # Give each common word an ID, starting at 2 so 0 stays "padding" and 1 stays "unknown"
+    return {word: i + 2 for i, (word, _) in enumerate(counts.most_common(max_tokens - 2))}
 
 def encode(texts, vocab, max_len=150):
-    out = np.zeros((len(texts), max_len), dtype="int64")
-    for i, t in enumerate(texts):
-        ids = [vocab.get(w, 1) for w in t.lower().split()][:max_len]
+    out = np.zeros((len(texts), max_len), dtype="int64")   # rows of zeros = pre-padded
+    for i, text in enumerate(texts):
+        ids = [vocab.get(word, 1) for word in text.lower().split()][:max_len]  # 1 = unknown word
         out[i, :len(ids)] = ids
     return out
 
 VOCAB_SIZE, MAX_LEN = 10000, 150
 vocab = build_vocab(texts, VOCAB_SIZE)
 X_text = encode(texts, vocab, MAX_LEN)
-Xt_tr, Xt_va, yt_tr, yt_va = train_test_split(
+X_text_train, X_text_val, y_text_train, y_text_val = train_test_split(
     X_text, sentiments, test_size=0.2, random_state=2026, stratify=sentiments)
 print("Encoded shape:", X_text.shape)
 ```
@@ -500,7 +523,8 @@ text_model = keras.Sequential([
     keras.layers.Dense(1, activation="sigmoid"),
 ])
 text_model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
-text_hist = text_model.fit(Xt_tr, yt_tr, validation_data=(Xt_va, yt_va),
+text_hist = text_model.fit(X_text_train, y_text_train,
+                           validation_data=(X_text_val, y_text_val),
                            epochs=5, batch_size=64, verbose=0)
 print("Validation accuracy:", round(float(text_hist.history["val_accuracy"][-1]), 3))
 ```
@@ -550,18 +574,32 @@ class SentimentNet(nn.Module):
         e = self.embed(x).mean(dim=1)          # average the word vectors
         return self.fc2(torch.relu(self.fc1(e)))  # logits
 
-pt = SentimentNet(VOCAB_SIZE)
-opt = torch.optim.Adam(pt.parameters(), lr=1e-3); loss_fn = nn.BCEWithLogitsLoss()
+sentiment_net = SentimentNet(VOCAB_SIZE)
+optimizer = torch.optim.Adam(sentiment_net.parameters(), lr=1e-3)
+loss_fn = nn.BCEWithLogitsLoss()
 
-train_dl = DataLoader(                          # mini-batches, just like Keras uses
-    TensorDataset(torch.tensor(Xt_tr), torch.tensor(yt_tr).unsqueeze(1)),
+# Mini-batches, just like Keras uses
+train_loader = DataLoader(
+    TensorDataset(torch.tensor(X_text_train), torch.tensor(y_text_train).unsqueeze(1)),
     batch_size=64, shuffle=True)
+
+# Same training loop shape as Module 1
 for epoch in range(5):
-    for xb, yb in train_dl:
-        opt.zero_grad(); loss = loss_fn(pt(xb), yb); loss.backward(); opt.step()
+    sentiment_net.train()
+    for x_batch, y_batch in train_loader:
+        optimizer.zero_grad()
+        loss = loss_fn(sentiment_net(x_batch), y_batch)
+        loss.backward()
+        optimizer.step()
+
+# Evaluate, one readable step at a time
+sentiment_net.eval()
 with torch.no_grad():
-    acc = ((torch.sigmoid(pt(torch.tensor(Xt_va))) > 0.5).float()
-           == torch.tensor(yt_va).unsqueeze(1)).float().mean().item()
+    logits = sentiment_net(torch.tensor(X_text_val))
+    probs = torch.sigmoid(logits)
+    predicted = (probs > 0.5).float()
+    correct = (predicted == torch.tensor(y_text_val).unsqueeze(1)).float()
+    acc = correct.mean().item()
 print("PyTorch validation accuracy:", round(acc, 3))
 ```
 
@@ -569,22 +607,24 @@ print("PyTorch validation accuracy:", round(acc, 3))
 
 ```{python}
 # Idea 1: more vocabulary and a longer window often help -- try it
-VOCAB2, LEN2 = 15000, 200
-vocab2 = build_vocab(texts, VOCAB2)
-X2 = encode(texts, vocab2, LEN2)
-X2_tr, X2_va, _, _ = train_test_split(X2, sentiments, test_size=0.2, random_state=2026,
-                                      stratify=sentiments)
-model2 = keras.Sequential([
-    keras.layers.Input(shape=(LEN2,)),
-    keras.layers.Embedding(VOCAB2, 32),
+BIG_VOCAB_SIZE, BIG_MAX_LEN = 15000, 200
+big_vocab = build_vocab(texts, BIG_VOCAB_SIZE)
+X_big = encode(texts, big_vocab, BIG_MAX_LEN)
+X_big_train, X_big_val, y_big_train, y_big_val = train_test_split(
+    X_big, sentiments, test_size=0.2, random_state=2026, stratify=sentiments)
+
+big_model = keras.Sequential([
+    keras.layers.Input(shape=(BIG_MAX_LEN,)),
+    keras.layers.Embedding(BIG_VOCAB_SIZE, 32),
     keras.layers.GlobalAveragePooling1D(),
     keras.layers.Dense(32, activation="relu"),
     keras.layers.Dense(1, activation="sigmoid"),
 ])
-model2.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
-h2 = model2.fit(X2_tr, yt_tr, validation_data=(X2_va, yt_va),
-                epochs=5, batch_size=64, verbose=0)
-print("Bigger-vocab validation accuracy:", round(float(h2.history["val_accuracy"][-1]), 3))
+big_model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
+big_hist = big_model.fit(X_big_train, y_big_train,
+                         validation_data=(X_big_val, y_big_val),
+                         epochs=5, batch_size=64, verbose=0)
+print("Bigger-vocab validation accuracy:", round(float(big_hist.history["val_accuracy"][-1]), 3))
 ```
 
 > **GenAI tip:** Paste 3-4 reviews the model gets *wrong* into an AI assistant and ask
@@ -620,6 +660,10 @@ from sklearn.metrics import (confusion_matrix, ConfusionMatrixDisplay,
 
 probs = model.predict(X_val, verbose=0).ravel()
 preds = (probs > 0.5).astype(int)
+
+# The bar to beat: always guessing the majority class ("not canceled")
+baseline = 1 - y_val.mean()
+print(f"Majority-class baseline (always 'not canceled'): {baseline:.1%} accuracy")
 
 cm = confusion_matrix(y_val, preds)
 ConfusionMatrixDisplay(cm, display_labels=["not canceled", "canceled"]).plot(
