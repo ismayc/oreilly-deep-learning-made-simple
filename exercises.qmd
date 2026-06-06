@@ -126,13 +126,15 @@ data = hotels[features + ["is_canceled"]].dropna().copy()
 X = data[features].values.astype("float32")
 y = data["is_canceled"].values.astype("float32")
 
-# Neural networks train far better on standardized inputs
-mean, std = X.mean(axis=0), X.std(axis=0) + 1e-8
-X = (X - mean) / std
-
 from sklearn.model_selection import train_test_split
 X_train, X_val, y_train, y_val = train_test_split(
     X, y, test_size=0.2, random_state=2026, stratify=y)
+
+# Neural networks train far better on standardized inputs. Fit the shift/scale on the
+# TRAINING data only, then apply the SAME numbers to validation (see the pitfall below).
+mean, std = X_train.mean(axis=0), X_train.std(axis=0) + 1e-8
+X_train = (X_train - mean) / std
+X_val = (X_val - mean) / std
 print("Train:", X_train.shape, "Validation:", X_val.shape)
 ```
 
@@ -183,6 +185,11 @@ plt.legend(); plt.title("Separation is the model's confidence, made visible")
 plt.show()
 ```
 
+> **GenAI tip:** Wondering whether ~78% accuracy is actually good? Paste the class
+> balance and the validation accuracy into an AI assistant and ask, "is this better than
+> always guessing the majority class, and by how much?" -- then check it against the
+> baseline we compute in Module 4.
+
 ## Exercise 1.1: Predicting Average Daily Rate (Regression)
 
 Now the target is a **number** -- the average daily rate (`adr`), i.e. price. The
@@ -196,24 +203,27 @@ adr_price = hotels["adr"].astype("float32")
 keep = reg_features.notna().all(axis=1) & adr_price.notna() & (hotels["adr"].between(0, 1000))
 X_reg = reg_features[keep].drop(columns=["adr"]).values.astype("float32")
 y_reg = adr_price[keep].values
-X_reg = (X_reg - X_reg.mean(0)) / (X_reg.std(0) + 1e-8)
 X_reg_train, X_reg_val, y_reg_train, y_reg_val = train_test_split(
     X_reg, y_reg, test_size=0.2, random_state=2026)
+# Standardize on the training split only, then apply to validation (same rule as the walkthrough)
+reg_mean, reg_std = X_reg_train.mean(0), X_reg_train.std(0) + 1e-8
+X_reg_train = (X_reg_train - reg_mean) / reg_std
+X_reg_val = (X_reg_val - reg_mean) / reg_std
 print("Regression features:", X_reg.shape)
 ```
 
 ```{python}
-# We'll build this together. Two choices make this a REGRESSION model, not a
-# classifier -- decide them as a class:
-#   * the output Dense layer's activation (what lets it predict ANY dollar amount?)
-#   * the loss function (which loss measures dollars-off?)
+# We'll build this together. Two choices flip this from a classifier to a REGRESSION
+# model -- notice each one as we go:
+#   * the output Dense layer has NO activation, so it can predict ANY dollar amount
+#   * the loss is "mse" (mean squared error), which measures how many dollars off we are
 reg_model = keras.Sequential([
     keras.layers.Input(shape=(X_reg.shape[1],)),
     keras.layers.Dense(32, activation="relu"),
     keras.layers.Dense(16, activation="relu"),
-    keras.layers.Dense(1),                    # <- your call: activation here, or none?
+    keras.layers.Dense(1),                    # no activation -> predict any number
 ])
-reg_model.compile(optimizer="adam", loss="mse", metrics=["mae"])   # <- your call: which loss?
+reg_model.compile(optimizer="adam", loss="mse", metrics=["mae"])   # mse = a regression loss
 reg_hist = reg_model.fit(X_reg_train, y_reg_train, validation_data=(X_reg_val, y_reg_val),
                          epochs=10, batch_size=256, verbose=0)
 print("Validation MAE (dollars off, on average):",
@@ -254,7 +264,7 @@ By the end of this module, you should be able to:
 - [ ] Build, compile, and train a feedforward network in Keras
 - [ ] Switch a model between **classification** (sigmoid + cross-entropy) and **regression** (no activation + MSE)
 - [ ] Read a falling loss curve as evidence of learning
-- [ ] Recognize the same model written in idiomatic PyTorch
+- [ ] Recognize the same model written in idiomatic PyTorch (see the solutions file)
 
 # Module 2: Deep Learning for Images and Customer Experience
 
@@ -316,6 +326,10 @@ plt.tight_layout(); plt.show()
 > **Common Pitfall:** Every pre-trained model expects its **own** preprocessing and
 > input size (here 224x224 and `preprocess_input`). Skip it and predictions look
 > random. When you swap models, swap the matching `preprocess_input`.
+
+> **GenAI tip:** When the pre-trained model guesses a *near-miss* label (say "plate" for
+> a pizza), paste its top guesses into an AI assistant and ask why those categories are
+> easy to confuse -- a fast way to build intuition for what the model actually "sees."
 
 ## Exercise 2.1: Fine-Tune a Classifier for *Your* Categories
 
@@ -554,12 +568,15 @@ By the end of this module, you should be able to:
 - [ ] Turn raw text into padded integer sequences a model can use
 - [ ] Build and train an embedding-based sentiment model in Keras
 - [ ] Score new sentences and spot where a simple model struggles
-- [ ] Read the same model written as a PyTorch `nn.Module`
+- [ ] Read the same model written as a PyTorch `nn.Module` (see the solutions file)
 
 # Module 4: Interpreting and Communicating Deep Learning Results
 
 A model is only as valuable as the trust and clarity you can put around it. We
 evaluate the **cancellation model** from Module 1 the way a business actually should.
+
+> **Heads up:** this module reuses the trained `model` and the `X_val` / `y_val` split
+> from Module 1, so run those cells first (in the same session) before this one.
 
 ## Walkthrough 4.1: Confusion Matrix and Business Metrics
 

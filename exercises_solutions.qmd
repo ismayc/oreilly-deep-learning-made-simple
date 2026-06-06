@@ -15,9 +15,10 @@ execute:
 
 ```{python}
 #| eval: false
-# Run this once per session (Google Colab already has torch + keras).
-# We teach in Keras 3 but run it on the PyTorch backend -- friendly code, PyTorch engine.
-!pip install -q keras torch datasets scikit-learn matplotlib pillow
+# Run this once per session, then RESTART the runtime if Colab prompts you to.
+# Colab already ships torch; we add/upgrade Keras 3 and the datasets library.
+!pip install -q -U keras datasets
+!pip install -q scikit-learn matplotlib pillow
 ```
 
 ```{python}
@@ -118,13 +119,15 @@ data = hotels[features + ["is_canceled"]].dropna().copy()
 X = data[features].values.astype("float32")
 y = data["is_canceled"].values.astype("float32")
 
-# Neural networks train far better on standardized inputs
-mean, std = X.mean(axis=0), X.std(axis=0) + 1e-8
-X = (X - mean) / std
-
 from sklearn.model_selection import train_test_split
 X_train, X_val, y_train, y_val = train_test_split(
     X, y, test_size=0.2, random_state=2026, stratify=y)
+
+# Neural networks train far better on standardized inputs. Fit the shift/scale on the
+# TRAINING data only, then apply the SAME numbers to validation (see the pitfall below).
+mean, std = X_train.mean(axis=0), X_train.std(axis=0) + 1e-8
+X_train = (X_train - mean) / std
+X_val = (X_val - mean) / std
 print("Train:", X_train.shape, "Validation:", X_val.shape)
 ```
 
@@ -174,6 +177,11 @@ plt.xlabel("predicted cancellation probability"); plt.ylabel("number of bookings
 plt.legend(); plt.title("Separation is the model's confidence, made visible")
 plt.show()
 ```
+
+> **GenAI tip:** Wondering whether ~78% accuracy is actually good? Paste the class
+> balance and the validation accuracy into an AI assistant and ask, "is this better than
+> always guessing the majority class, and by how much?" -- then check it against the
+> baseline we compute in Module 4.
 
 ### The same model in idiomatic PyTorch (reference)
 
@@ -242,10 +250,13 @@ keep = reg_features.notna().all(axis=1) & adr_price.notna() & (hotels["adr"].bet
 
 X_reg = reg_features[keep].drop(columns=["adr"]).values.astype("float32")
 y_reg = adr_price[keep].values
-X_reg = (X_reg - X_reg.mean(0)) / (X_reg.std(0) + 1e-8)   # standardize, as before
 
 X_reg_train, X_reg_val, y_reg_train, y_reg_val = train_test_split(
     X_reg, y_reg, test_size=0.2, random_state=2026)
+# Standardize on the training split only, then apply to validation (same rule as before)
+reg_mean, reg_std = X_reg_train.mean(0), X_reg_train.std(0) + 1e-8
+X_reg_train = (X_reg_train - reg_mean) / reg_std
+X_reg_val = (X_reg_val - reg_mean) / reg_std
 
 reg_model = keras.Sequential([
     keras.layers.Input(shape=(X_reg.shape[1],)),
@@ -356,6 +367,10 @@ plt.tight_layout(); plt.show()
 > **Common Pitfall:** Every pre-trained model expects its **own** preprocessing and
 > input size (here 224x224 and `preprocess_input`). Skip it and predictions look
 > random. When you swap models, swap the matching `preprocess_input`.
+
+> **GenAI tip:** When the pre-trained model guesses a *near-miss* label (say "plate" for
+> a pizza), paste its top guesses into an AI assistant and ask why those categories are
+> easy to confuse -- a fast way to build intuition for what the model actually "sees."
 
 ## Exercise 2.1: Fine-Tune a Classifier for *Your* Categories
 
@@ -627,6 +642,20 @@ big_hist = big_model.fit(X_big_train, y_big_train,
 print("Bigger-vocab validation accuracy:", round(float(big_hist.history["val_accuracy"][-1]), 3))
 ```
 
+```{python}
+# Stress-test: feed deliberately tricky reviews (sarcasm, negation) and watch where a
+# word-averaging model slips -- it has no sense of word ORDER, so "not great" looks
+# positive (it saw "great"). Add your own lines and see which ones fool it.
+tricky = [
+    "Not great, would not recommend",
+    "Well that was a complete waste of money",
+    "The food was anything but fresh",
+    "I can't say I loved it",
+]
+for s in tricky:
+    print(sentiment_of(s), "<-", s)
+```
+
 > **GenAI tip:** Paste 3-4 reviews the model gets *wrong* into an AI assistant and ask
 > "why might a simple averaging model miss the sentiment here?" -- great way to surface
 > sarcasm, negation, and context limits to discuss with the room.
@@ -651,6 +680,9 @@ By the end of this module, you should be able to:
 
 A model is only as valuable as the trust and clarity you can put around it. We
 evaluate the **cancellation model** from Module 1 the way a business actually should.
+
+> **Heads up:** this module reuses the trained `model` and the `X_val` / `y_val` split
+> from Module 1, so run those cells first (in the same session) before this one.
 
 ## Walkthrough 4.1: Confusion Matrix and Business Metrics
 
