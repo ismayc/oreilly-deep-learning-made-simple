@@ -44,10 +44,11 @@ def title_cell(nb_name, badge):
             "\n",
         ]
     lines += [
-        "We teach in **Keras 3** running on the **PyTorch** backend. Run the setup cell\n",
-        "first, then work top to bottom. All data is fetched from the web (a GitHub URL\n",
-        "for the hotel data; Hugging Face streaming for the image and text data), so there\n",
-        "is **nothing to upload** -- each dataset loads itself when you run its cell.\n",
+        "We teach in **Keras 3** running on the **PyTorch** backend (the same code also runs\n",
+        "on **TensorFlow** -- see the touchpoints throughout). Run the setup cell first, then\n",
+        "work top to bottom. All data is fetched from the web (a GitHub URL for the hotel\n",
+        "data; Hugging Face streaming for the image and text data), so there is **nothing to\n",
+        "upload** -- each dataset loads itself when you run its cell.\n",
     ]
     return {"cell_type": "markdown", "metadata": {}, "source": lines}
 

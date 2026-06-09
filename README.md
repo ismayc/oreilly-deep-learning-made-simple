@@ -3,6 +3,10 @@
 This course teaches deep learning with **Keras 3 running on the PyTorch backend** --
 friendly, high-level code on top of a production-grade engine. The solutions also show
 each model written in **idiomatic PyTorch** for learners who want the lower-level view.
+Because Keras 3 is engine-agnostic, the *same* code also runs on **TensorFlow**, and the
+notebooks include a few TensorFlow touchpoints: the one-line backend switch, the
+TF-powered `TextVectorization` layer, a TensorFlow **SavedModel** export for deployment,
+and a `tf.keras` reference model in the solutions.
 
 ## Run it in Google Colab (recommended — nothing to install)
 
@@ -64,6 +68,10 @@ source .venv/bin/activate         # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 jupyter notebook                  # then open exercises.ipynb
 ```
+
+The notebooks' optional **TensorFlow** cells (the SavedModel export, and the
+`TextVectorization` and `tf.keras` references) need TensorFlow, which Colab already
+includes. To run those on a local install, add it once with `pip install tensorflow`.
 
 Note: the deep learning stack (Keras/PyTorch) cannot run in browser-only environments
 such as JupyterLite/Pyodide, which is why this course uses Colab or a local install

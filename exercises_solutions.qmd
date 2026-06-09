@@ -5,7 +5,7 @@ format:
   html:
     theme: flatly
     toc: true
-    toc-floating: true
+    toc-location: right
     embed-resources: true
   ipynb: default
 engine: jupyter
@@ -45,6 +45,31 @@ In this course we use **Keras 3** -- a friendly, high-level deep learning API --
 running on the **PyTorch** backend. You write simple Keras code; PyTorch does the
 heavy lifting underneath. Every walkthrough also includes an **idiomatic PyTorch**
 version so you can see what the same model looks like in raw PyTorch.
+
+## One Keras, three engines (TensorFlow, PyTorch, or JAX)
+
+Keras 3 is **engine-agnostic**: the *same* model code runs on **TensorFlow**, **PyTorch**,
+or **JAX**. You choose the engine once per session by setting `KERAS_BACKEND` **before**
+importing Keras; nothing else in this course changes. We use PyTorch here -- to run any of
+it on TensorFlow instead, you'd change one line in the setup cell and restart the runtime:
+
+```{python}
+#| eval: false
+# To run this course on the TensorFlow engine instead of PyTorch, set this BEFORE
+# `import keras`, then restart the runtime (the engine is locked in once Keras imports).
+import os
+os.environ["KERAS_BACKEND"] = "tensorflow"   # was "torch"
+```
+
+```{python}
+# Whichever engine is active, this is how you check it:
+print("Active Keras engine:", keras.backend.backend())
+print("Keras can also target:", ["tensorflow", "torch", "jax"])
+```
+
+> **Why this matters for you:** you learn *one* high-level API and stay portable. If your
+> team standardizes on TensorFlow (or JAX) later, your Keras code comes along -- only the
+> one-line engine setting changes.
 
 ## Walkthrough: Setting Up Keras (PyTorch backend) and Your First Tensor
 
@@ -235,6 +260,34 @@ print("PyTorch validation accuracy:", round(val_acc, 3))
 > model outputs a raw score (a "logit"). That's the PyTorch convention -- `BCEWithLogitsLoss`
 > folds the sigmoid in for numerical stability, so we apply `sigmoid` ourselves only
 > when we want a probability at the end.
+
+### The same model in idiomatic TensorFlow / `tf.keras` (reference)
+
+For comparison, here is the *same* network written directly in **TensorFlow** via its
+bundled `tf.keras` API. Notice how close it is to the Keras 3 code at the top -- that's the
+point: Keras is the very API TensorFlow exposes natively.
+
+```{python}
+#| eval: false
+# Runs on Colab (TensorFlow is preinstalled). This uses TF directly, not the torch backend.
+import tensorflow as tf
+
+tf_model = tf.keras.Sequential([
+    tf.keras.layers.Input(shape=(len(features),)),
+    tf.keras.layers.Dense(32, activation="relu"),
+    tf.keras.layers.Dense(16, activation="relu"),
+    tf.keras.layers.Dense(1, activation="sigmoid"),   # probability of cancellation
+])
+tf_model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
+tf_model.fit(X_train, y_train, validation_data=(X_val, y_val),
+             epochs=10, batch_size=256, verbose=0)
+tf_loss, tf_acc = tf_model.evaluate(X_val, y_val, verbose=0)
+print("TensorFlow (tf.keras) validation accuracy:", round(float(tf_acc), 3))
+```
+
+> **Notice:** the `tf.keras` model is line-for-line the same as our Keras 3 model -- because
+> Keras 3 *is* that API, just decoupled from any one engine. The PyTorch version above needs
+> a hand-written training loop; both Keras forms hand you `.fit()`.
 
 ## Exercise 1.1: Predicting Average Daily Rate (Regression)
 
@@ -562,9 +615,27 @@ X_text_train, X_text_val, y_text_train, y_text_val = train_test_split(
 print("Encoded shape:", X_text.shape)
 ```
 
-> **Common Pitfall:** Keras 3's `TextVectorization` layer needs TensorFlow installed,
-> even on the PyTorch backend. A small tokenizer like this keeps the project
-> backend-pure -- and shows exactly what "turning text into numbers" means.
+> **The TensorFlow-powered alternative:** Keras 3 ships a convenience layer,
+> `keras.layers.TextVectorization`, that does this tokenizing for you. It is powered by
+> **TensorFlow** under the hood, so it needs TensorFlow available even on the PyTorch
+> backend -- Colab already ships it. We hand-rolled the tokenizer above to show exactly
+> what "turning text into numbers" means; here is the one-layer TensorFlow version doing
+> the same job:
+
+```{python}
+#| eval: false
+# TensorFlow-backed text vectorization. Colab ships TensorFlow, so this runs as-is.
+from keras.layers import TextVectorization
+
+vectorizer = TextVectorization(max_tokens=VOCAB_SIZE, output_sequence_length=MAX_LEN)
+vectorizer.adapt(texts)                    # learns the vocabulary from the reviews (via TF)
+demo = vectorizer(["the staff were friendly and the food arrived hot"])
+print("TextVectorization output shape:", tuple(demo.shape))   # (1, MAX_LEN)
+print("First 12 token IDs:", [int(t) for t in demo[0][:12]])
+```
+
+> The hand-built `encode()` and this TensorFlow layer do the same job -- map words to
+> integer IDs and pad to a fixed length -- so the embedding model below trains on either.
 
 ### Build an embedding model
 
@@ -824,6 +895,31 @@ the recommendation.
 > **GenAI tip:** Check the draft against what the model actually showed -- the numbers, and
 > whether the recommendation matches your stated business cost.
 
+## Walkthrough 4.3: Package the Model for Deployment (TensorFlow SavedModel)
+
+A trained model only creates value once it's **deployed**. The industry-standard format
+for serving is the **TensorFlow SavedModel** -- and Keras 3 can export one straight from
+the cancellation model we trained on the PyTorch backend (the export goes through
+TensorFlow, which Colab already ships):
+
+```{python}
+#| eval: false
+# Export the trained Module 1 cancellation model as a TensorFlow SavedModel.
+# `model.export()` writes a TF SavedModel regardless of the active Keras engine.
+model.export("hotel_cancel_savedmodel")     # -> a folder a serving stack can load
+
+# Reload it the way a deployment/serving environment would, then predict.
+import tensorflow as tf
+reloaded = tf.saved_model.load("hotel_cancel_savedmodel")
+serving = reloaded.signatures["serving_default"]
+print("Served predictions:", serving(tf.constant(X_val[:3], dtype=tf.float32)))
+```
+
+> **Why a SavedModel:** it bundles the network *and* its trained weights into a
+> language-agnostic package that TensorFlow Serving, Vertex AI, SageMaker, and most MLOps
+> tooling load directly -- no Python training code required. Same model you built in
+> Module 1; this is how you hand it to production.
+
 ### Interpretation Questions
 
 1. As you lower the threshold, recall rises but precision falls. Which way should a
@@ -840,3 +936,4 @@ By the end of this module, you should be able to:
 - [ ] Compute precision, recall, and F1 -- and say when accuracy misleads
 - [ ] Tune a decision threshold to a stated business cost
 - [ ] Turn model results into a clear, honest stakeholder summary
+- [ ] Export a trained model as a TensorFlow SavedModel for deployment
