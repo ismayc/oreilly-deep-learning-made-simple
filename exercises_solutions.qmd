@@ -186,7 +186,7 @@ plt.plot(history.history["loss"], label="train loss")
 plt.plot(history.history["val_loss"], label="validation loss")
 plt.xlabel("epoch"); plt.ylabel("loss"); plt.legend()
 plt.title("The falling loss IS the model learning")
-plt.show()
+plt.show();
 ```
 
 ### Visualize: can the model tell the two groups apart?
@@ -200,7 +200,7 @@ plt.hist(val_probs[y_val == 1], bins=30, alpha=0.6, label="actually canceled")
 plt.axvline(0.5, color="k", ls="--", lw=1, label="default threshold")
 plt.xlabel("predicted cancellation probability"); plt.ylabel("number of bookings")
 plt.legend(); plt.title("Separation is the model's confidence, made visible")
-plt.show()
+plt.show();
 ```
 
 > **GenAI tip:** Wondering whether ~78% accuracy is actually good? Paste the class
@@ -333,7 +333,7 @@ plt.plot(lim, lim, "r--", label="perfect prediction")
 plt.xlim(lim); plt.ylim(lim)
 plt.xlabel("actual ADR ($)"); plt.ylabel("predicted ADR ($)")
 plt.legend(); plt.title("Where the price model is tight -- and where it drifts")
-plt.show()
+plt.show();
 ```
 
 > **Common Pitfall:** For regression, the output layer has **no activation** and the
@@ -435,7 +435,7 @@ for ax, row in zip(axes, samples[:4]):
     guess, conf = predict_label(row["image"])
     ax.imshow(row["image"]); ax.axis("off")
     ax.set_title(f"true: {class_names[row['label']]}\nguess: {guess} ({conf})", fontsize=9)
-plt.tight_layout(); plt.show()
+plt.tight_layout(); plt.show();
 ```
 
 > **Common Pitfall:** Every pre-trained model expects its **own** preprocessing and
@@ -504,7 +504,7 @@ for ax, img, true_i, pred_i in zip(axes, X_img_val[:6], y_img_val[:6], val_pred[
     ax.imshow(img.astype("uint8")); ax.axis("off")
     ok = (true_i == pred_i)
     ax.set_title(f"{wanted[pred_i]}", color="green" if ok else "red", fontsize=10)
-plt.suptitle("Fine-tuned model on YOUR categories"); plt.tight_layout(); plt.show()
+plt.suptitle("Fine-tuned model on YOUR categories"); plt.tight_layout(); plt.show();
 ```
 
 > **Common Pitfall:** Keep the pre-trained base **frozen** (`base.trainable = False`)
@@ -680,7 +680,7 @@ plt.barh(range(len(examples)), scores, color=colors)
 plt.yticks(range(len(examples)), [s[:32] + "..." for s in examples], fontsize=8)
 plt.axvline(0.5, color="k", ls="--", lw=1)
 plt.xlabel("predicted positivity"); plt.xlim(0, 1)
-plt.title("Sentiment score per review"); plt.tight_layout(); plt.show()
+plt.title("Sentiment score per review"); plt.tight_layout(); plt.show();
 ```
 
 ### Idiomatic PyTorch (reference)
@@ -833,7 +833,7 @@ plt.title("Where the model is right -- and wrong"); plt.show()
 
 print("Precision:", round(precision_score(y_val, preds), 3),
       "| Recall:", round(recall_score(y_val, preds), 3),
-      "| F1:", round(f1_score(y_val, preds), 3))
+      "| F1:", round(f1_score(y_val, preds), 3));
 ```
 
 > **Common Pitfall:** Accuracy alone hides the costly errors. Read the confusion
@@ -862,7 +862,7 @@ plt.plot(grid, rec, label="recall")
 plt.axvline(0.35, color="k", ls="--", lw=1, label="a recall-leaning choice")
 plt.xlabel("decision threshold"); plt.ylabel("score"); plt.legend()
 plt.title("Precision vs recall is a dial you set to the business cost")
-plt.show()
+plt.show();
 ```
 
 ```{python}
