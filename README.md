@@ -45,9 +45,6 @@ In Colab:
 - `index.html` — landing page (served at the site root): https://ismay-oreilly-dlms.netlify.app
 - `requirements.txt` — packages for running locally (Colab already has most of these).
 
-> The annotated instructor edition (`exercises_solutions_with_notes.qmd`) is a local
-> working file and is intentionally not committed (see `.gitignore`).
-
 ### Rebuilding the notebooks from source
 
 The `.ipynb` files are generated from the `.qmd` sources. To regenerate them (requires
@@ -59,8 +56,8 @@ python scripts/build-notebooks.py
 
 ## Running locally instead of Colab
 
-If you aren't able to use Colab, you can run the notebooks on your own machine. We
-recommend Python 3.10–3.12.
+If you aren't able to use Colab, you can run the notebooks on your own machine with 
+(recommended) Python 3.10–3.12.
 
 ```bash
 python -m venv .venv
