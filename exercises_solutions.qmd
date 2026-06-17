@@ -81,6 +81,19 @@ flowchart TD
   classDef good fill:#d8f5d8,stroke:#2e7d32,color:#1a1a1a
 ```
 
+A quick aside on the three engines, since you will hear all of them mentioned. Here is
+the short version of when each one shines:
+
+| Engine | Strengths | Trade-offs |
+|---|---|---|
+| **PyTorch** *(our choice)* | Pythonic and easy to debug; dominant in research and now common in industry; huge ecosystem of models and tutorials | Production serving tooling was historically less turnkey than TensorFlow's |
+| **TensorFlow** | Mature deployment stack (TF Serving, TFLite, on-device); battle-tested at scale | More boilerplate; less convenient for quick, interactive experimentation |
+| **JAX** | Very fast, especially on TPUs; composable `jit`, `grad`, and `vmap` for cutting-edge research | Smaller ecosystem and a steeper learning curve; least beginner-friendly |
+
+We use **PyTorch** because it is the friendliest to learn and debug and the backend you
+are most likely to meet on the job. Because Keras 3 is engine-agnostic, it is a low-stakes
+choice either way.
+
 ```{python}
 #| eval: false
 # To run this course on the TensorFlow engine instead of PyTorch, set this BEFORE
@@ -1024,7 +1037,7 @@ print(f"At threshold {chosen}: we catch {recall_score(y_val, p):.0%} of cancella
 > executive summary: the decision, the impact, and the main risk. Then fact-check
 > every number it repeats before it goes in a deck.
 
-## Walkthrough + Exercise 4.2: Explain Predictions, then Draft an Executive Summary with GenAI
+## Walkthrough + Exercise 4.2: From Feature Importance to an AI-Drafted Executive Summary
 
 First, open the black box. "It's a black box" is the objection you will hear most. The
 simplest, model-agnostic way to see what drove the model is **permutation importance**:
