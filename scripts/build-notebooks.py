@@ -4,6 +4,8 @@
 For each committed qmd we:
   1. `quarto convert` it to a notebook,
   2. drop the YAML front-matter cell and prepend a title (+ "Open in Colab" badge),
+  2b. clean markdown cells: drop the HTML-only <style> block and rewrite Quarto
+      ```{mermaid} fences to plain ```mermaid so GitHub renders the diagrams,
   3. make the pip cell robust for a fresh Colab runtime,
   4. strip Quarto `#|` directive lines (noise in a plain notebook),
   5. clear outputs / execution counts and set a clean kernelspec.
@@ -12,6 +14,7 @@ Usage:  python scripts/build-notebooks.py
 Requires: quarto on PATH.
 """
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -72,6 +75,25 @@ def clean(nb_name, badge):
 
     # 1) drop the YAML front-matter cell if present
     cells = [c for c in cells if not is_yaml_cell(c)]
+
+    # 1b) markdown cells: strip the HTML-only <style> block, and rewrite Quarto
+    #     ```{mermaid} fences to plain ```mermaid (dropping `%%|` cell-options) so
+    #     GitHub renders the diagrams in the notebook (Colab shows clean source).
+    def _fix_mermaid(m):
+        body = "\n".join(ln for ln in m.group(1).split("\n")
+                         if not ln.lstrip().startswith("%%|"))
+        return "```mermaid\n" + body + "\n```"
+    kept = []
+    for c in cells:
+        if c["cell_type"] == "markdown":
+            text = "".join(c["source"])
+            text = re.sub(r'```\{=html\}\n<style>.*?</style>\n```\n*', '', text, flags=re.S)
+            text = re.sub(r'```\{mermaid\}\n(.*?)\n```', _fix_mermaid, text, flags=re.S)
+            if not text.strip():
+                continue  # drop a now-empty cell (e.g. the CSS-only block)
+            c["source"] = text.splitlines(keepends=True)
+        kept.append(c)
+    cells = kept
 
     # 2) strip Quarto directive lines from code cells; clear outputs
     for c in cells:

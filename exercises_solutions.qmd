@@ -13,6 +13,15 @@ execute:
   warning: false
 ---
 
+```{=html}
+<style>
+.cell-output-display:has(.mermaid-js) { text-align: center; }
+.cell-output-display .mermaid-js { display: inline-block; max-width: 100%; }
+.cell-output-display .mermaid-js > svg { max-width: 100%; height: auto; }
+.cell-output-display .mermaid-js g.eng rect, .cell-output-display .mermaid-js g.engUsed rect { width: 130px !important; x: -65px !important; }
+</style>
+```
+
 ```{python}
 #| eval: false
 # Run this once per session, then RESTART the runtime if Colab prompts you to.
@@ -41,7 +50,7 @@ print("Keras", keras.__version__, "on backend:", keras.backend.backend())
 
 # Intro: Getting Started with Deep Learning for Business
 
-In this course we use **Keras 3** -- a friendly, high-level deep learning API --
+In this course we use **Keras 3**, a friendly, high-level deep learning API,
 running on the **PyTorch** backend. You write simple Keras code; PyTorch does the
 heavy lifting underneath. Every walkthrough also includes an **idiomatic PyTorch**
 version so you can see what the same model looks like in raw PyTorch.
@@ -50,8 +59,27 @@ version so you can see what the same model looks like in raw PyTorch.
 
 Keras 3 is **engine-agnostic**: the *same* model code runs on **TensorFlow**, **PyTorch**,
 or **JAX**. You choose the engine once per session by setting `KERAS_BACKEND` **before**
-importing Keras; nothing else in this course changes. We use PyTorch here -- to run any of
+importing Keras; nothing else in this course changes. We use PyTorch here, to run any of
 it on TensorFlow instead, you'd change one line in the setup cell and restart the runtime:
+
+```{mermaid}
+%%| fig-cap: "You write Keras 3 once; one setting picks the engine that runs it (PyTorch here)."
+%%| fig-align: center
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '16px'}, 'flowchart': {'nodeSpacing': 90}}}%%
+flowchart TD
+  C(["Your Keras 3 code"]):::proc --> E{"KERAS_BACKEND ?"}:::decision
+  E -->|tensorflow| F["TensorFlow"]:::eng
+  E -->|torch| T["PyTorch"]:::engUsed
+  E -->|jax| J["JAX"]:::eng
+  F --> R(["Same model,<br/>runs unchanged"]):::good
+  T --> R
+  J --> R
+  classDef proc fill:#dbe9ff,stroke:#1a73e8,color:#1a1a1a
+  classDef decision fill:#fff3cd,stroke:#d39e00,color:#1a1a1a
+  classDef eng fill:#e6e0ff,stroke:#6a1b9a,color:#1a1a1a
+  classDef engUsed fill:#cdb8ff,stroke:#5b1690,stroke-width:3px,color:#1a1a1a
+  classDef good fill:#d8f5d8,stroke:#2e7d32,color:#1a1a1a
+```
 
 ```{python}
 #| eval: false
@@ -68,7 +96,7 @@ print("Keras can also target:", ["tensorflow", "torch", "jax"])
 ```
 
 > **Why this matters for you:** you learn *one* high-level API and stay portable. If your
-> team standardizes on TensorFlow (or JAX) later, your Keras code comes along -- only the
+> team standardizes on TensorFlow (or JAX) later, your Keras code comes along, only the
 > one-line engine setting changes.
 
 ## Walkthrough: Setting Up Keras (PyTorch backend) and Your First Tensor
@@ -106,11 +134,11 @@ print("If you see a (1, 1) tensor above, you are ready to go.")
 
 > **GenAI tip:** If a setup cell errors, copy the *full* error plus one line of context
 > ("I'm using Keras 3 with the PyTorch backend on Colab") into your AI assistant and
-> ask for the fix. Re-run to confirm -- never trust a fix you haven't re-run.
+> ask for the fix. Re-run to confirm, never trust a fix you haven't re-run.
 
 # Module 1: Demystifying Neural Networks for Business Insight
 
-We'll predict **hotel booking cancellations** -- a real revenue-management problem.
+We'll predict **hotel booking cancellations**, a real revenue-management problem.
 Every cancellation is a room you could have sold. The dataset has ~119,000 real
 bookings.
 
@@ -133,6 +161,21 @@ hotels["is_canceled"].value_counts(normalize=True).round(3)
 ```
 
 ### Prepare the features
+
+```{mermaid}
+%%| fig-cap: "Fit the scaler on training data only, then apply it to both splits. Computing it on all the data leaks the future."
+%%| fig-align: center
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '16px'}}}%%
+flowchart TD
+  TR[("Training set")]:::data --> SC["Compute mean & std<br/>on TRAIN only"]:::key
+  SC --> AP["Apply the same numbers<br/>to BOTH splits"]:::proc
+  AP --> TS[/"Scaled training"/]:::good
+  AP --> VS[/"Scaled validation"/]:::good
+  classDef data fill:#d1f0ec,stroke:#0b7a75,color:#1a1a1a
+  classDef key fill:#fff3cd,stroke:#d39e00,stroke-width:2px,color:#1a1a1a
+  classDef proc fill:#dbe9ff,stroke:#1a73e8,color:#1a1a1a
+  classDef good fill:#d8f5d8,stroke:#2e7d32,color:#1a1a1a
+```
 
 ```{python}
 # A handful of numeric drivers a revenue manager would recognize
@@ -162,6 +205,19 @@ print("Train:", X_train.shape, "Validation:", X_val.shape)
 
 ### Build, train, and evaluate the network
 
+```{mermaid}
+%%| fig-cap: "Business inputs flow through hidden 'specialist' layers into one cancellation probability."
+%%| fig-align: center
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '16px'}}}%%
+flowchart LR
+  I[/"8 booking<br/>features"/]:::data --> H1["Dense 32<br/>specialists"]:::proc
+  H1 --> H2["Dense 16<br/>combine"]:::proc
+  H2 --> O[/"Cancel<br/>probability"/]:::good
+  classDef data fill:#d1f0ec,stroke:#0b7a75,color:#1a1a1a
+  classDef proc fill:#dbe9ff,stroke:#1a73e8,color:#1a1a1a
+  classDef good fill:#d8f5d8,stroke:#2e7d32,color:#1a1a1a
+```
+
 ```{python}
 model = keras.Sequential([
     keras.layers.Input(shape=(len(features),)),
@@ -171,6 +227,19 @@ model = keras.Sequential([
 ])
 model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
 model.summary()
+```
+
+```{mermaid}
+%%| fig-cap: "Training is a loop: predict, measure how wrong, adjust, and repeat."
+%%| fig-align: center
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '17px'}}}%%
+flowchart LR
+  P["Predict"]:::proc --> M["Measure error<br/>= loss"]:::bad
+  M --> A["Adjust weights<br/>= optimizer"]:::accent
+  A -->|repeat each epoch| P
+  classDef proc fill:#dbe9ff,stroke:#1a73e8,color:#1a1a1a
+  classDef bad fill:#fde0e0,stroke:#c62828,color:#1a1a1a
+  classDef accent fill:#ede0ff,stroke:#6a1b9a,color:#1a1a1a
 ```
 
 ```{python}
@@ -205,7 +274,7 @@ plt.show();
 
 > **GenAI tip:** Wondering whether ~78% accuracy is actually good? Paste the class
 > balance and the validation accuracy into an AI assistant and ask, "is this better than
-> always guessing the majority class, and by how much?" -- then check it against the
+> always guessing the majority class, and by how much?". Then check it against the
 > baseline we compute in Module 4.
 
 ### The same model in idiomatic PyTorch (reference)
@@ -249,50 +318,41 @@ with torch.no_grad():
     predicted = (probs > 0.5).float()         # 1 if "canceled", else 0
     correct = (predicted == y_val_t).float()  # 1 where the prediction matches the truth
     val_acc = correct.mean().item()           # fraction correct
-print("PyTorch validation accuracy:", round(val_acc, 3))
+print("PyTorch validation accuracy:", round(val_acc, 3));
 ```
 
 > **Notice:** Keras handled the training loop for you; in raw PyTorch you write
 > the `DataLoader` and the `zero_grad -> forward -> loss -> backward -> step` loop
-> yourself. Same model, same mini-batching -- just more control and more code.
+> yourself. Same model, same mini-batching, just more control and more code.
 >
 > One difference to call out: the Keras model ended in a `sigmoid`, but the PyTorch
-> model outputs a raw score (a "logit"). That's the PyTorch convention -- `BCEWithLogitsLoss`
+> model outputs a raw score (a "logit"). That's the PyTorch convention, `BCEWithLogitsLoss`
 > folds the sigmoid in for numerical stability, so we apply `sigmoid` ourselves only
 > when we want a probability at the end.
 
-### The same model in idiomatic TensorFlow / `tf.keras` (reference)
-
-For comparison, here is the *same* network written directly in **TensorFlow** via its
-bundled `tf.keras` API. Notice how close it is to the Keras 3 code at the top -- that's the
-point: Keras is the very API TensorFlow exposes natively.
-
-```{python}
-#| eval: false
-# Runs on Colab (TensorFlow is preinstalled). This uses TF directly, not the torch backend.
-import tensorflow as tf
-
-tf_model = tf.keras.Sequential([
-    tf.keras.layers.Input(shape=(len(features),)),
-    tf.keras.layers.Dense(32, activation="relu"),
-    tf.keras.layers.Dense(16, activation="relu"),
-    tf.keras.layers.Dense(1, activation="sigmoid"),   # probability of cancellation
-])
-tf_model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
-tf_model.fit(X_train, y_train, validation_data=(X_val, y_val),
-             epochs=10, batch_size=256, verbose=0)
-tf_loss, tf_acc = tf_model.evaluate(X_val, y_val, verbose=0)
-print("TensorFlow (tf.keras) validation accuracy:", round(float(tf_acc), 3))
-```
-
-> **Notice:** the `tf.keras` model is line-for-line the same as our Keras 3 model -- because
-> Keras 3 *is* that API, just decoupled from any one engine. The PyTorch version above needs
-> a hand-written training loop; both Keras forms hand you `.fit()`.
+> **Prefer TensorFlow?** The same model is identical save for the prefix, e.g.
+> `tf.keras.Sequential([...])`, since Keras 3 *is* the API TensorFlow exposes. Like the
+> Keras code above it hands you `.fit()`; only the lower-level PyTorch version needs a
+> hand-written loop.
 
 ## Exercise 1.1: Predicting Average Daily Rate (Regression)
 
-Now the target is a **number** -- the average daily rate (`adr`), i.e. price. The
+Now the target is a **number**, the average daily rate (`adr`), i.e. price. The
 same network shape works; we just change the last layer and the loss.
+
+```{mermaid}
+%%| fig-cap: "Switch tasks by changing only the last layer and the loss; the body stays the same."
+%%| fig-align: center
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '16px'}}}%%
+flowchart TD
+  B["Same network body"]:::proc --> Q{"Predicting<br/>what?"}:::decision
+  Q -->|Yes / No| C["Sigmoid + cross-entropy<br/>probability, 0 to 1"]:::good
+  Q -->|A number| R["No activation + MSE<br/>any dollar value"]:::accent
+  classDef proc fill:#dbe9ff,stroke:#1a73e8,color:#1a1a1a
+  classDef decision fill:#fff3cd,stroke:#d39e00,color:#1a1a1a
+  classDef good fill:#d8f5d8,stroke:#2e7d32,color:#1a1a1a
+  classDef accent fill:#ede0ff,stroke:#6a1b9a,color:#1a1a1a
+```
 
 ```{python}
 reg_features = hotels[features].copy()
@@ -337,14 +397,14 @@ plt.show();
 ```
 
 > **Common Pitfall:** For regression, the output layer has **no activation** and the
-> loss is `mse` (or `mae`) -- not `sigmoid` + `binary_crossentropy`. Using a sigmoid
+> loss is `mse` (or `mae`), not `sigmoid` + `binary_crossentropy`. Using a sigmoid
 > here would squash every prediction between 0 and 1.
 
 ## Walkthrough + Exercise 1.2: Use GenAI to Decode Errors and Explain Choices
 
 Models throw confusing errors while you build them, and it isn't always obvious why a
 layer is shaped the way it is. Your AI assistant is a fast debugging and explanation
-partner -- the skill is prompting clearly and **verifying** (never trust a fix you
+partner, the skill is prompting clearly and **verifying** (never trust a fix you
 haven't re-run).
 
 **A prompt to start from** (paste into your AI assistant, then iterate):
@@ -368,7 +428,7 @@ haven't re-run).
    score? We dig into this in Module 4.)
 2. The regression model's MAE is in **dollars**. Is being off by that much acceptable
    for a pricing decision? Where would it need to be tighter?
-3. Which features would you add to improve either model -- and which might be
+3. Which features would you add to improve either model, and which might be
    *leakage* (information you wouldn't have at booking time)?
 
 ### Self-Check
@@ -383,7 +443,7 @@ By the end of this module, you should be able to:
 
 # Module 2: Deep Learning for Images and Customer Experience
 
-Direct application: **auto-tagging product/food photos** -- the kind of task behind
+Direct application: **auto-tagging product/food photos**, the kind of task behind
 delivery-app menus, retail catalogs, and visual search. We use the **Food-101**
 dataset and a **pre-trained** convolutional network, so we get strong results without
 training on millions of images ourselves (transfer learning).
@@ -408,6 +468,22 @@ print("Example categories in this dataset:", class_names[:8], "...")
 ```
 
 ### Let a pre-trained model label them
+
+```{mermaid}
+%%| fig-cap: "A CNN builds understanding in stages, from tiny edges up to the whole object."
+%%| fig-align: center
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '16px'}}}%%
+flowchart TD
+  P[/"Raw pixels"/]:::s1 --> E["Edges & corners"]:::s2
+  E --> T["Textures & shapes"]:::s3
+  T --> PA["Object parts"]:::s4
+  PA --> L[/"'coffee maker'"/]:::good
+  classDef s1 fill:#eef4ff,stroke:#1a73e8,color:#1a1a1a
+  classDef s2 fill:#cfe0ff,stroke:#1a73e8,color:#1a1a1a
+  classDef s3 fill:#a9c7ff,stroke:#1a4fa0,color:#1a1a1a
+  classDef s4 fill:#7fa9f5,stroke:#1a4fa0,color:#10203a
+  classDef good fill:#d8f5d8,stroke:#2e7d32,color:#1a1a1a
+```
 
 ```{python}
 from keras.applications.mobilenet_v2 import (
@@ -444,7 +520,7 @@ plt.tight_layout(); plt.show();
 
 > **GenAI tip:** When the pre-trained model guesses a *near-miss* label (say "plate" for
 > a pizza), paste its top guesses into an AI assistant and ask why those categories are
-> easy to confuse -- a fast way to build intuition for what the model actually "sees."
+> easy to confuse, a fast way to build intuition for what the model actually "sees."
 
 ## Exercise 2.1: Fine-Tune a Classifier for *Your* Categories
 
@@ -474,6 +550,18 @@ y_img = np.array(labels)
 X_img_train, X_img_val, y_img_train, y_img_val = train_test_split(
     X_img, y_img, test_size=0.25, random_state=2026, stratify=y_img)
 print("Training images:", X_img_train.shape, "across", len(wanted), "categories")
+```
+
+```{mermaid}
+%%| fig-cap: "Keep the giant model's general vision frozen; train only a small new head on your own data."
+%%| fig-align: center
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '16px'}}}%%
+flowchart LR
+  V["Pre-trained base (FROZEN)<br/>vision from<br/>millions of images"]:::frozen --> NH["New head you train<br/>on YOUR 360 images"]:::accent
+  NH --> OUT[/"pizza /<br/>burger /<br/>sushi"/]:::good
+  classDef frozen fill:#dbe9ff,stroke:#1a73e8,stroke-width:3px,color:#1a1a1a
+  classDef accent fill:#ede0ff,stroke:#6a1b9a,color:#1a1a1a
+  classDef good fill:#d8f5d8,stroke:#2e7d32,color:#1a1a1a
 ```
 
 ```{python}
@@ -534,7 +622,7 @@ loss_fn = nn.CrossEntropyLoss()
 ## Walkthrough + Exercise 2.2: Use GenAI to Explain Layers and Suggest Improvements
 
 Use your AI assistant to demystify a model's architecture and weigh changes for your own
-use case -- then test, don't just trust.
+use case. Then test, don't just trust.
 
 **A prompt to start from:**
 
@@ -591,6 +679,22 @@ print(texts[0][:160], "...")
 
 ### Turn words into numbers (a simple tokenizer)
 
+```{mermaid}
+%%| fig-cap: "From messy text to a sentiment call: tokenize, pad, embed, pool, predict."
+%%| fig-align: center
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '16px'}}}%%
+flowchart TD
+  R[/"Raw review:<br/>'great food,<br/>slow service'"/]:::data --> T["Tokens to<br/>integer IDs"]:::proc
+  T --> PD["Pad to a<br/>fixed length"]:::proc
+  PD --> EM["Embedding:<br/>meaning as numbers"]:::accent
+  EM --> AV["Average the<br/>word vectors"]:::proc
+  AV --> O[/"Positive /<br/>Negative"/]:::good
+  classDef data fill:#d1f0ec,stroke:#0b7a75,color:#1a1a1a
+  classDef proc fill:#dbe9ff,stroke:#1a73e8,color:#1a1a1a
+  classDef accent fill:#ede0ff,stroke:#6a1b9a,color:#1a1a1a
+  classDef good fill:#d8f5d8,stroke:#2e7d32,color:#1a1a1a
+```
+
 ```{python}
 from collections import Counter
 
@@ -618,7 +722,7 @@ print("Encoded shape:", X_text.shape)
 > **The TensorFlow-powered alternative:** Keras 3 ships a convenience layer,
 > `keras.layers.TextVectorization`, that does this tokenizing for you. It is powered by
 > **TensorFlow** under the hood, so it needs TensorFlow available even on the PyTorch
-> backend -- Colab already ships it. We hand-rolled the tokenizer above to show exactly
+> backend, Colab already ships it. We hand-rolled the tokenizer above to show exactly
 > what "turning text into numbers" means; here is the one-layer TensorFlow version doing
 > the same job:
 
@@ -634,8 +738,8 @@ print("TextVectorization output shape:", tuple(demo.shape))   # (1, MAX_LEN)
 print("First 12 token IDs:", [int(t) for t in demo[0][:12]])
 ```
 
-> The hand-built `encode()` and this TensorFlow layer do the same job -- map words to
-> integer IDs and pad to a fixed length -- so the embedding model below trains on either.
+> The hand-built `encode()` and this TensorFlow layer do the same job, map words to
+> integer IDs and pad to a fixed length. So the embedding model below trains on either.
 
 ### Build an embedding model
 
@@ -725,7 +829,7 @@ with torch.no_grad():
     predicted = (probs > 0.5).float()
     correct = (predicted == torch.tensor(y_text_val).unsqueeze(1)).float()
     acc = correct.mean().item()
-print("PyTorch validation accuracy:", round(acc, 3))
+print("PyTorch validation accuracy:", round(acc, 3));
 ```
 
 ## Exercise 3.1: Improve and Stress-Test the Model
@@ -752,6 +856,19 @@ big_hist = big_model.fit(X_big_train, y_big_train,
 print("Bigger-vocab validation accuracy:", round(float(big_hist.history["val_accuracy"][-1]), 3))
 ```
 
+```{mermaid}
+%%| fig-cap: "Averaging word vectors ignores order, so 'not great' can look positive."
+%%| fig-align: center
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '16px'}}}%%
+flowchart TD
+  N[/"word:<br/>'not'"/]:::proc --> AV["Averaged together<br/>(word order is lost)"]:::accent
+  G[/"word:<br/>'great'"/]:::proc --> AV
+  AV --> R[/"Looks POSITIVE<br/>it only saw 'great'"/]:::bad
+  classDef proc fill:#dbe9ff,stroke:#1a73e8,color:#1a1a1a
+  classDef accent fill:#ede0ff,stroke:#6a1b9a,color:#1a1a1a
+  classDef bad fill:#fde0e0,stroke:#c62828,color:#1a1a1a
+```
+
 ```{python}
 # Stress-test: feed deliberately tricky reviews (sarcasm, negation) and watch where a
 # word-averaging model slips -- it has no sense of word ORDER, so "not great" looks
@@ -767,7 +884,7 @@ for s in tricky:
 ```
 
 > **GenAI tip:** Paste 3-4 reviews the model gets *wrong* into an AI assistant and ask
-> "why might a simple averaging model miss the sentiment here?" -- great way to surface
+> "why might a simple averaging model miss the sentiment here?", great way to surface
 > sarcasm, negation, and context limits to discuss with the room.
 
 ## Walkthrough + Exercise 3.2: Use GenAI to Summarize Sentiment for Stakeholders
@@ -778,7 +895,7 @@ raw numbers into a short narrative two different audiences can act on.
 **A prompt to start from:**
 
 > Here are my sentiment results: [paste the validation accuracy and 3-4 example reviews
-> with their predicted scores]. Write a 3-sentence summary for a non-technical manager --
+> with their predicted scores]. Write a 3-sentence summary for a non-technical manager,
 > what we found, why it matters, and one caution. Then write a more technical version for a
 > data analyst.
 
@@ -786,8 +903,8 @@ raw numbers into a short narrative two different audiences can act on.
 # Scratch space for 3.2 -- assemble the numbers/examples you'll paste into your assistant.
 ```
 
-> **GenAI tip:** Fact-check every number the assistant repeats before it goes in a deck --
-> it will sometimes "round" or invent figures.
+> **GenAI tip:** Fact-check every number the assistant repeats before it goes in a deck.
+> It will sometimes "round" or invent figures.
 
 ### Interpretation Questions
 
@@ -814,6 +931,21 @@ evaluate the **cancellation model** from Module 1 the way a business actually sh
 > from Module 1, so run those cells first (in the same session) before this one.
 
 ## Walkthrough 4.1: Confusion Matrix and Business Metrics
+
+```{mermaid}
+%%| fig-cap: "The confusion matrix in business terms. The missed cancellation is the costly box."
+%%| fig-align: center
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '15px'}}}%%
+flowchart LR
+  A[/"Actually<br/>CANCELED"/]:::anchor --> TP["Caught it<br/>(correct)"]:::good
+  A --> FN["MISSED it<br/>unsold room (costly)"]:::bad
+  K[/"Actually<br/>KEPT"/]:::anchor --> TN["Correct keep"]:::good
+  K --> FP["False alarm<br/>(hassled a guest)"]:::warn
+  classDef anchor fill:#eceff1,stroke:#546e7a,color:#1a1a1a
+  classDef good fill:#d8f5d8,stroke:#2e7d32,color:#1a1a1a
+  classDef bad fill:#fde0e0,stroke:#c62828,stroke-width:2px,color:#1a1a1a
+  classDef warn fill:#ffe8cc,stroke:#e8730c,color:#1a1a1a
+```
 
 ```{python}
 from sklearn.metrics import (confusion_matrix, ConfusionMatrixDisplay,
@@ -842,8 +974,23 @@ print("Precision:", round(precision_score(y_val, preds), 3),
 
 ## Exercise 4.1: Tune the Threshold to the Business Trade-off
 
-The model outputs a *probability*. **You** decide where to draw the line -- and that
+The model outputs a *probability*. **You** decide where to draw the line, and that
 choice is a business decision, not a default of 0.5.
+
+```{mermaid}
+%%| fig-cap: "The decision threshold is a business dial: trade recall against precision by cost."
+%%| fig-align: center
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '16px'}}}%%
+flowchart TD
+  T{"Decision threshold<br/>YOU set it, not 0.5"}:::decision -->|move lower| MORE["Catch more cancels<br/>more recall, less precision"]:::accent
+  T -->|move higher| FEWER["Fewer false alarms<br/>more precision, less recall"]:::proc
+  MORE --> COST["Set by cost:<br/>a miss costs about<br/>4x a false alarm"]:::bad
+  FEWER --> COST
+  classDef decision fill:#fff3cd,stroke:#d39e00,color:#1a1a1a
+  classDef accent fill:#ede0ff,stroke:#6a1b9a,color:#1a1a1a
+  classDef proc fill:#dbe9ff,stroke:#1a73e8,color:#1a1a1a
+  classDef bad fill:#fde0e0,stroke:#c62828,color:#1a1a1a
+```
 
 ```{python}
 print(f"{'threshold':>10} {'precision':>10} {'recall':>8}")
@@ -877,30 +1024,79 @@ print(f"At threshold {chosen}: we catch {recall_score(y_val, p):.0%} of cancella
 > executive summary: the decision, the impact, and the main risk. Then fact-check
 > every number it repeats before it goes in a deck.
 
-## Walkthrough + Exercise 4.2: Use GenAI to Draft an Executive Summary
+## Walkthrough + Exercise 4.2: Explain Predictions, then Draft an Executive Summary with GenAI
 
-Turn your evaluation into a decision-ready brief. The assistant drafts; you verify and own
-the recommendation.
+First, open the black box. "It's a black box" is the objection you will hear most. The
+simplest, model-agnostic way to see what drove the model is **permutation importance**:
+shuffle one feature at a time and watch how much accuracy drops. A big drop means the model
+leaned heavily on that feature; little drop means it barely used it.
+
+```{python}
+# Permutation importance: shuffle each feature in turn and measure the accuracy it costs.
+# Bigger drop = the model relied on that feature more. (Reuses the Module 1 model + X_val.)
+import numpy as np
+rng = np.random.default_rng(2026)
+
+base_acc = ((model.predict(X_val, verbose=0).ravel() > 0.5).astype(int) == y_val).mean()
+drops = []
+for j in range(len(features)):
+    X_shuffled = X_val.copy()
+    X_shuffled[:, j] = rng.permutation(X_shuffled[:, j])   # break this one feature's signal
+    acc = ((model.predict(X_shuffled, verbose=0).ravel() > 0.5).astype(int) == y_val).mean()
+    drops.append(base_acc - acc)
+
+order = np.argsort(drops)
+plt.barh([features[i] for i in order], [drops[i] for i in order], color="steelblue")
+plt.xlabel("accuracy lost when the feature is shuffled")
+plt.title("What drives the cancellation model?"); plt.tight_layout(); plt.show();
+```
+
+Now you can answer "why did the model decide that?" in plain language: "it flags a booking
+mainly on the lead time and the daily rate." For images and text the same idea shows up as
+attention maps, over the pixels or words the model leaned on. The goal is never to expose the
+math; it is to turn the model's internals into reasons a human can trust.
+
+**Now you try:** turn the metrics *and* that "why" into a decision-ready brief with your AI
+assistant. The assistant drafts; you verify and own the recommendation. This is the
+make-or-break communication skill of the whole course.
 
 **A prompt to start from:**
 
-> Given these results -- precision [X] and recall [Y] at a decision threshold of [T], where
-> missing a cancellation costs about 4x a false alarm -- write a 3-sentence executive
-> summary: the decision, the business impact, and the main risk. Keep it jargon-free.
+> Given these results, precision [X] and recall [Y] at a decision threshold of [T], where
+> missing a cancellation costs about 4x a false alarm, plus the top drivers [paste the
+> highest-importance features above]. Write a 3-sentence executive summary: the decision, the
+> business impact, and the main risk, and end with a one-line plain-English "why."
 
 ```{python}
-# Scratch space for 4.2 -- paste your chosen threshold's precision/recall here.
+# Scratch space for 4.2 -- paste your threshold's precision/recall and the top features here.
 ```
 
-> **GenAI tip:** Check the draft against what the model actually showed -- the numbers, and
-> whether the recommendation matches your stated business cost.
+> **GenAI tip:** Check the draft against what the model actually showed: the numbers, and
+> whether the stated "why" matches the importance chart. Fact-check every figure before it
+> goes in a deck.
 
 ## Walkthrough 4.3: Package the Model for Deployment (TensorFlow SavedModel)
 
 A trained model only creates value once it's **deployed**. The industry-standard format
-for serving is the **TensorFlow SavedModel** -- and Keras 3 can export one straight from
+for serving is the **TensorFlow SavedModel**, and Keras 3 can export one straight from
 the cancellation model we trained on the PyTorch backend (the export goes through
 TensorFlow, which Colab already ships):
+
+```{mermaid}
+%%| fig-cap: "Export once to a SavedModel; standard serving tools load it with no training code."
+%%| fig-align: center
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '16px'}}}%%
+flowchart LR
+  TR(["Trained Keras model<br/>(PyTorch backend)"]):::start --> EX["model.export()"]:::key
+  EX --> SM[("TensorFlow<br/>SavedModel")]:::data
+  SM --> SRV["Serving stack:<br/>TF Serving, Vertex AI"]:::accent
+  SRV --> PR[/"Live<br/>predictions"/]:::good
+  classDef start fill:#dbe9ff,stroke:#1a73e8,color:#1a1a1a
+  classDef key fill:#fff3cd,stroke:#d39e00,color:#1a1a1a
+  classDef data fill:#d1f0ec,stroke:#0b7a75,color:#1a1a1a
+  classDef accent fill:#ede0ff,stroke:#6a1b9a,color:#1a1a1a
+  classDef good fill:#d8f5d8,stroke:#2e7d32,color:#1a1a1a
+```
 
 ```{python}
 #| eval: false
@@ -917,13 +1113,13 @@ print("Served predictions:", serving(tf.constant(X_val[:3], dtype=tf.float32)))
 
 > **Why a SavedModel:** it bundles the network *and* its trained weights into a
 > language-agnostic package that TensorFlow Serving, Vertex AI, SageMaker, and most MLOps
-> tooling load directly -- no Python training code required. Same model you built in
+> tooling load directly. No Python training code required. Same model you built in
 > Module 1; this is how you hand it to production.
 
 ### Interpretation Questions
 
 1. As you lower the threshold, recall rises but precision falls. Which way should a
-   revenue team lean for cancellations -- and why?
+   revenue team lean for cancellations, and why?
 2. Write one sentence a non-technical manager would understand describing what this
    model does and what it's worth.
 3. What would you monitor after deployment to catch the model going stale (drift)?
@@ -933,7 +1129,7 @@ print("Served predictions:", serving(tf.constant(X_val[:3], dtype=tf.float32)))
 By the end of this module, you should be able to:
 
 - [ ] Build and read a confusion matrix in business terms
-- [ ] Compute precision, recall, and F1 -- and say when accuracy misleads
+- [ ] Compute precision, recall, and F1, and say when accuracy misleads
 - [ ] Tune a decision threshold to a stated business cost
 - [ ] Turn model results into a clear, honest stakeholder summary
 - [ ] Export a trained model as a TensorFlow SavedModel for deployment
