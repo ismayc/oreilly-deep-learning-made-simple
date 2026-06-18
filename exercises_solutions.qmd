@@ -1,6 +1,8 @@
 ---
 title: "Walkthroughs and Exercises for Deep Learning for Business Made Simple"
-author: "Dr. Chester Ismay"
+author:
+  - name: "Dr. Chester Ismay"
+    url: "https://chester.rbind.io"
 format:
   html:
     theme: flatly

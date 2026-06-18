@@ -21,8 +21,6 @@ execute:
 </style>
 ```
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ismayc/oreilly-deep-learning-made-simple/blob/main/exercises.ipynb)
-
 Run this in **Google Colab** (free GPU, nothing to install locally). All data is
 fetched from the web, a GitHub URL for the hotel data and Hugging Face streaming
 for the image and text data. So there is **nothing to upload**: each dataset loads

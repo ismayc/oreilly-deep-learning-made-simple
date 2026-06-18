@@ -3,7 +3,8 @@
 
 For each committed qmd we:
   1. `quarto convert` it to a notebook,
-  2. drop the YAML front-matter cell and prepend a title (+ "Open in Colab" badge),
+  2. drop the YAML front-matter cell and prepend a title (no "Open in Colab" badge --
+     the notebooks open IN Colab, where that badge is redundant),
   2b. clean markdown cells: drop the HTML-only <style> block and rewrite Quarto
       ```{mermaid} fences to plain ```mermaid so GitHub renders the diagrams,
   3. make the pip cell robust for a fresh Colab runtime,
@@ -23,9 +24,10 @@ REPO = "ismayc/oreilly-deep-learning-made-simple"
 BRANCH = "main"
 ROOT = Path(__file__).resolve().parent.parent
 
-# (source qmd, output ipynb, add a Colab badge?)
+# (source qmd, output ipynb, add a Colab badge?) -- badge off: the notebooks are
+# opened IN Colab, so an "Open in Colab" badge inside them is redundant.
 TARGETS = [
-    ("exercises.qmd", "exercises.ipynb", True),
+    ("exercises.qmd", "exercises.ipynb", False),
     ("exercises_solutions.qmd", "exercises_solutions.ipynb", False),
 ]
 
