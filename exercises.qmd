@@ -176,6 +176,24 @@ hotels[["hotel", "lead_time", "adults", "previous_cancellations",
         "adr", "is_canceled"]].head()
 ```
 
+<details>
+<summary><strong>Data dictionary</strong> (click to expand) — the hotel-booking columns we use</summary>
+
+| Column | Type | What it stores |
+|---|---|---|
+| `hotel` | text | Property type: "City Hotel" or "Resort Hotel" |
+| `lead_time` | integer | Days between the booking and the arrival date |
+| `stays_in_weekend_nights` | integer | Weekend nights (Sat/Sun) in the stay |
+| `stays_in_week_nights` | integer | Weeknights (Mon to Fri) in the stay |
+| `adults` | integer | Number of adults on the booking |
+| `previous_cancellations` | integer | Earlier bookings this guest had canceled |
+| `booking_changes` | integer | Changes made to the booking after it was placed |
+| `total_of_special_requests` | integer | Count of special requests (e.g., a high floor) |
+| `adr` | float | Average daily rate: the average price per night |
+| `is_canceled` | binary (0/1) | Target: 1 if the booking was canceled, 0 if kept |
+
+</details>
+
 ```{python}
 # How often do guests cancel? (our target)
 hotels["is_canceled"].value_counts(normalize=True).round(3)
