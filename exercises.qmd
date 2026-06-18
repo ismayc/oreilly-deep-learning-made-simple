@@ -149,8 +149,9 @@ print("Column means:", keras.ops.mean(x, axis=0))
 layer = keras.layers.Dense(1, activation="sigmoid")
 out = layer(keras.ops.array([[0.5, -1.2, 3.0]]))
 print("Output shape:", out.shape)
-print("If you see a (1, 1) tensor above, you are ready to go.")
 ```
+
+If you see a `(1, 1)` tensor above, you are ready to go.
 
 > **GenAI tip:** If a setup cell errors, copy the *full* error plus one line of context
 > ("I'm using Keras 3 with the PyTorch backend on Colab") into your AI assistant and
