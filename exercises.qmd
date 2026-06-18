@@ -194,7 +194,6 @@ hotels[["hotel", "lead_time", "adults", "previous_cancellations",
 
 ```{python}
 # How often do guests cancel? (our target)
-hotels["is_canceled"].value_counts(normalize=True).round(3)
 ```
 
 ### Prepare the features
@@ -216,24 +215,12 @@ flowchart TD
 
 ```{python}
 # A handful of numeric drivers a revenue manager would recognize
-features = ["lead_time", "stays_in_weekend_nights", "stays_in_week_nights",
-            "adults", "previous_cancellations", "booking_changes",
-            "total_of_special_requests", "adr"]
 
-data = hotels[features + ["is_canceled"]].dropna().copy()
-X = data[features].values.astype("float32")
-y = data["is_canceled"].values.astype("float32")
 
-from sklearn.model_selection import train_test_split
-X_train, X_val, y_train, y_val = train_test_split(
-    X, y, test_size=0.2, random_state=2026, stratify=y)
+
 
 # Neural networks train far better on standardized inputs. Fit the shift/scale on the
 # TRAINING data only, then apply the SAME numbers to validation (see the pitfall below).
-mean, std = X_train.mean(axis=0), X_train.std(axis=0) + 1e-8
-X_train = (X_train - mean) / std
-X_val = (X_val - mean) / std
-print("Train:", X_train.shape, "Validation:", X_val.shape)
 ```
 
 > **Common Pitfall:** Standardize using statistics from the **training** data only,
@@ -256,14 +243,7 @@ flowchart LR
 ```
 
 ```{python}
-model = keras.Sequential([
-    keras.layers.Input(shape=(len(features),)),
-    keras.layers.Dense(32, activation="relu"),   # a "team of specialists"
-    keras.layers.Dense(16, activation="relu"),
-    keras.layers.Dense(1, activation="sigmoid"),  # probability of cancellation
-])
-model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
-model.summary()
+
 ```
 
 ```{mermaid}
@@ -280,10 +260,7 @@ flowchart LR
 ```
 
 ```{python}
-history = model.fit(X_train, y_train, validation_data=(X_val, y_val),
-                    epochs=10, batch_size=256, verbose=0)
-print("Final validation accuracy:",
-      round(float(history.history["val_accuracy"][-1]), 3))
+
 ```
 
 ```{python}
@@ -355,17 +332,6 @@ print("Regression features:", X_reg.shape)
 # model -- notice each one as we go:
 #   * the output Dense layer has NO activation, so it can predict ANY dollar amount
 #   * the loss is "mse" (mean squared error), which measures how many dollars off we are
-reg_model = keras.Sequential([
-    keras.layers.Input(shape=(X_reg.shape[1],)),
-    keras.layers.Dense(32, activation="relu"),
-    keras.layers.Dense(16, activation="relu"),
-    keras.layers.Dense(1),                    # no activation -> predict any number
-])
-reg_model.compile(optimizer="adam", loss="mse", metrics=["mae"])   # mse = a regression loss
-reg_hist = reg_model.fit(X_reg_train, y_reg_train, validation_data=(X_reg_val, y_reg_val),
-                         epochs=10, batch_size=256, verbose=0)
-print("Validation MAE (dollars off, on average):",
-      round(float(reg_hist.history["val_mae"][-1]), 2))
 ```
 
 ```{python}
@@ -527,48 +493,16 @@ flowchart LR
 ```{python}
 # YOUR CALL: pick 3 categories that exist in class_names (print class_names to browse).
 # Swap these for whatever "product catalog" you want to recognize.
-wanted = ["pizza", "hamburger", "sushi"]
+
 # Map each Food-101 category index to a fresh 0/1/2 label for our 3-class problem
-want_idx = {class_names.index(name): new_label for new_label, name in enumerate(wanted)}
+
 
 # Build a small labeled set (~120 images each) -- run this to assemble your data.
-imgs, labels = [], []
-counts = {category: 0 for category in want_idx}     # how many we've collected per category
-for row in load_dataset("ethz/food101", split="train", streaming=True):
-    category = row["label"]
-    if category in want_idx and counts[category] < 120:   # cap at 120 images each
-        imgs.append(np.array(row["image"].convert("RGB").resize((160, 160)), "float32"))
-        labels.append(want_idx[category])
-        counts[category] += 1
-    if all(c >= 120 for c in counts.values()):
-        break
-
-X_img = np.stack(imgs)
-y_img = np.array(labels)
-X_img_train, X_img_val, y_img_train, y_img_val = train_test_split(
-    X_img, y_img, test_size=0.25, random_state=2026, stratify=y_img)
-print("Training images:", X_img_train.shape, "across", len(wanted), "categories")
 ```
 
 ```{python}
 # The transfer-learning move (we'll build this together): keep the base FROZEN so its
 # general vision is preserved, and train only the small new head on top.
-base = MobileNetV2(input_shape=(160, 160, 3), include_top=False, weights="imagenet")
-base.trainable = False                        # <- why freeze? discuss as a class
-
-clf = keras.Sequential([
-    keras.layers.Input(shape=(160, 160, 3)),
-    keras.layers.Lambda(preprocess_input),
-    base,
-    keras.layers.GlobalAveragePooling2D(),
-    keras.layers.Dropout(0.2),
-    keras.layers.Dense(len(wanted), activation="softmax"),   # one output per category
-])
-clf.compile(optimizer="adam", loss="sparse_categorical_crossentropy",
-            metrics=["accuracy"])
-clf.fit(X_img_train, y_img_train, validation_data=(X_img_val, y_img_val),
-        epochs=5, batch_size=16, verbose=0)
-print("Validation accuracy:", round(float(clf.evaluate(X_img_val, y_img_val, verbose=0)[1]), 3))
 ```
 
 ```{python}
@@ -710,18 +644,7 @@ print("First 12 token IDs:", [int(t) for t in demo[0][:12]])
 ### Build an embedding model
 
 ```{python}
-text_model = keras.Sequential([
-    keras.layers.Input(shape=(MAX_LEN,)),
-    keras.layers.Embedding(VOCAB_SIZE, 32),        # the "meaning as numbers" map
-    keras.layers.GlobalAveragePooling1D(),
-    keras.layers.Dense(32, activation="relu"),
-    keras.layers.Dense(1, activation="sigmoid"),
-])
-text_model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
-text_hist = text_model.fit(X_text_train, y_text_train,
-                           validation_data=(X_text_val, y_text_val),
-                           epochs=5, batch_size=64, verbose=0)
-print("Validation accuracy:", round(float(text_hist.history["val_accuracy"][-1]), 3))
+
 ```
 
 ### Try it on your own sentences
@@ -793,13 +716,8 @@ print("Bigger-vocab validation accuracy:", round(float(big_hist.history["val_acc
 ```{python}
 # YOUR TURN: write tricky reviews (sarcasm, "not great", "would not recommend") and
 # see where a word-averaging model slips. Add your own lines to this list.
-tricky = [
-    "Not great, would not recommend",
-    "Well that was a complete waste of money",
+
     # add 2-3 of your own here...
-]
-for s in tricky:
-    print(sentiment_of(s), "<-", s)
 ```
 
 > **GenAI tip:** Paste 3-4 reviews the model gets *wrong* into an AI assistant and ask
@@ -867,24 +785,7 @@ flowchart LR
 ```
 
 ```{python}
-from sklearn.metrics import (confusion_matrix, ConfusionMatrixDisplay,
-                             precision_score, recall_score, f1_score)
-
-probs = model.predict(X_val, verbose=0).ravel()
-preds = (probs > 0.5).astype(int)
-
 # The bar to beat: always guessing the majority class ("not canceled")
-baseline = 1 - y_val.mean()
-print(f"Majority-class baseline (always 'not canceled'): {baseline:.1%} accuracy")
-
-cm = confusion_matrix(y_val, preds)
-ConfusionMatrixDisplay(cm, display_labels=["not canceled", "canceled"]).plot(
-    cmap="Blues", colorbar=False)
-plt.title("Where the model is right -- and wrong"); plt.show()
-
-print("Precision:", round(precision_score(y_val, preds), 3),
-      "| Recall:", round(recall_score(y_val, preds), 3),
-      "| F1:", round(f1_score(y_val, preds), 3))
 ```
 
 > **Common Pitfall:** Accuracy alone hides the costly errors. Read the confusion
@@ -912,15 +813,7 @@ flowchart TD
 ```
 
 ```{python}
-from sklearn.metrics import precision_score, recall_score
-
 # The probabilities come from the Module 1 cancellation model.
-probs = model.predict(X_val, verbose=0).ravel()
-
-print(f"{'threshold':>10} {'precision':>10} {'recall':>8}")
-for thr in [0.3, 0.4, 0.5, 0.6, 0.7]:
-    p = (probs > thr).astype(int)
-    print(f"{thr:>10} {precision_score(y_val, p):>10.3f} {recall_score(y_val, p):>8.3f}")
 ```
 
 ```{python}
@@ -939,10 +832,6 @@ plt.show()
 ```{python}
 # YOUR DECISION: missing a cancellation costs ~4x a false alarm, so lean toward recall.
 # Change `chosen` and read the consequence out loud in business terms.
-chosen = 0.35                                 # <- your call
-p = (probs > chosen).astype(int)
-print(f"At threshold {chosen}: we catch {recall_score(y_val, p):.0%} of cancellations, "
-      f"with precision {precision_score(y_val, p):.0%}.")
 ```
 
 > **GenAI tip:** Feed these numbers to an AI assistant and ask for a 3-sentence
@@ -959,21 +848,6 @@ leaned heavily on that feature; little drop means it barely used it.
 ```{python}
 # Permutation importance: shuffle each feature in turn and measure the accuracy it costs.
 # Bigger drop = the model relied on that feature more. (Reuses the Module 1 model + X_val.)
-import numpy as np
-rng = np.random.default_rng(2026)
-
-base_acc = ((model.predict(X_val, verbose=0).ravel() > 0.5).astype(int) == y_val).mean()
-drops = []
-for j in range(len(features)):
-    X_shuffled = X_val.copy()
-    X_shuffled[:, j] = rng.permutation(X_shuffled[:, j])   # break this one feature's signal
-    acc = ((model.predict(X_shuffled, verbose=0).ravel() > 0.5).astype(int) == y_val).mean()
-    drops.append(base_acc - acc)
-
-order = np.argsort(drops)
-plt.barh([features[i] for i in order], [drops[i] for i in order], color="steelblue")
-plt.xlabel("accuracy lost when the feature is shuffled")
-plt.title("What drives the cancellation model?"); plt.tight_layout(); plt.show();
 ```
 
 Now you can answer "why did the model decide that?" in plain language: "it flags a booking
