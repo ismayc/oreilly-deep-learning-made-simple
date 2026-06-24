@@ -91,16 +91,16 @@ def png_width(path):
 
 
 def mermaid_to_image(code):
-    """Render `code` if needed and return an <img> referencing its committed PNG
-    via raw.githubusercontent.com, sized to DIAGRAM_DISPLAY_SCALE of natural
-    width so the 2x render displays at a sensible size."""
+    """Render `code` if needed and return a centered <img> referencing its
+    committed PNG via raw.githubusercontent.com, sized to DIAGRAM_DISPLAY_SCALE
+    of natural width so the 2x render displays at a sensible size."""
     name = diagram_name(code)
     out_path = DIAGRAMS_DIR / name
     if not out_path.exists():
         render_diagram(code, out_path)
     width = round(png_width(out_path) * DIAGRAM_DISPLAY_SCALE)
-    return (f'<img src="{diagram_raw_url(name)}" '
-            f'alt="Mermaid diagram" width="{width}">')
+    return (f'<div align="center"><img src="{diagram_raw_url(name)}" '
+            f'alt="Mermaid diagram" width="{width}"></div>')
 
 
 def title_cell(nb_name, badge):
