@@ -27,6 +27,7 @@ import hashlib
 import json
 import os
 import re
+import struct
 import subprocess
 import sys
 from pathlib import Path
@@ -35,6 +36,9 @@ REPO = "ismayc/oreilly-deep-learning-made-simple"
 BRANCH = "main"
 ROOT = Path(__file__).resolve().parent.parent
 DIAGRAMS_DIR = ROOT / "assets" / "diagrams"
+# Diagrams render at 2x for crisp text but are large; display them at 60% of
+# that natural width so they don't dominate the notebook.
+DIAGRAM_DISPLAY_SCALE = 0.6
 PUPPETEER_CFG = ROOT / "scripts" / "puppeteer-config.json"
 
 # (source qmd, output ipynb, add a Colab badge?) -- badge off: the notebooks are
@@ -81,14 +85,22 @@ def render_diagram(code, out_path):
         src.unlink(missing_ok=True)
 
 
+def png_width(path):
+    """Pixel width from the PNG IHDR header (avoids a Pillow dependency)."""
+    return struct.unpack(">I", path.read_bytes()[16:20])[0]
+
+
 def mermaid_to_image(code):
-    """Render `code` if needed and return the markdown image referencing its
-    committed PNG via raw.githubusercontent.com."""
+    """Render `code` if needed and return an <img> referencing its committed PNG
+    via raw.githubusercontent.com, sized to DIAGRAM_DISPLAY_SCALE of natural
+    width so the 2x render displays at a sensible size."""
     name = diagram_name(code)
     out_path = DIAGRAMS_DIR / name
     if not out_path.exists():
         render_diagram(code, out_path)
-    return f"![Mermaid diagram]({diagram_raw_url(name)})"
+    width = round(png_width(out_path) * DIAGRAM_DISPLAY_SCALE)
+    return (f'<img src="{diagram_raw_url(name)}" '
+            f'alt="Mermaid diagram" width="{width}">')
 
 
 def title_cell(nb_name, badge):
