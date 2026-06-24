@@ -6,7 +6,9 @@ For each committed qmd we:
   2. drop the YAML front-matter cell and prepend a title (no "Open in Colab" badge --
      the notebooks open IN Colab, where that badge is redundant),
   2b. clean markdown cells: drop the HTML-only <style> block and rewrite Quarto
-      ```{mermaid} fences to plain ```mermaid so GitHub renders the diagrams,
+      ```{mermaid} fences to mermaid.ink image links so the diagrams render in
+      Google Colab (whose markdown engine has no mermaid support); GitHub and
+      nbviewer display the same PNG,
   3. make the pip cell robust for a fresh Colab runtime,
   4. strip Quarto `#|` directive lines (noise in a plain notebook),
   5. clear outputs / execution counts and set a clean kernelspec.
@@ -14,10 +16,12 @@ For each committed qmd we:
 Usage:  python scripts/build-notebooks.py
 Requires: quarto on PATH.
 """
+import base64
 import json
 import re
 import subprocess
 import sys
+import zlib
 from pathlib import Path
 
 REPO = "ismayc/oreilly-deep-learning-made-simple"
@@ -34,6 +38,20 @@ TARGETS = [
 
 def colab_url(nb_name):
     return f"https://colab.research.google.com/github/{REPO}/blob/{BRANCH}/{nb_name}"
+
+
+def mermaid_img_url(code):
+    """Encode mermaid source as a mermaid.ink PNG link.
+
+    Uses the same pako (zlib) + base64url scheme mermaid.live emits for its
+    "Copy Image Link", so mermaid.ink renders it server-side. The diagram is
+    fetched by the viewer's browser, which is why it works in Colab.
+    """
+    state = {"code": code, "mermaid": {"theme": "default"}}
+    raw = json.dumps(state, separators=(",", ":")).encode("utf-8")
+    comp = zlib.compress(raw, 9)             # zlib stream == pako.deflate default
+    b64 = base64.urlsafe_b64encode(comp).decode("ascii").rstrip("=")
+    return "https://mermaid.ink/img/pako:" + b64 + "?type=png"
 
 
 def title_cell(nb_name, badge):
@@ -79,12 +97,13 @@ def clean(nb_name, badge):
     cells = [c for c in cells if not is_yaml_cell(c)]
 
     # 1b) markdown cells: strip the HTML-only <style> block, and rewrite Quarto
-    #     ```{mermaid} fences to plain ```mermaid (dropping `%%|` cell-options) so
-    #     GitHub renders the diagrams in the notebook (Colab shows clean source).
+    #     ```{mermaid} fences (dropping `%%|` cell-options) to a mermaid.ink image
+    #     link. Colab's markdown engine has no mermaid support, so a fenced block
+    #     never renders there; an <img> does. GitHub/nbviewer show the same PNG.
     def _fix_mermaid(m):
         body = "\n".join(ln for ln in m.group(1).split("\n")
-                         if not ln.lstrip().startswith("%%|"))
-        return "```mermaid\n" + body + "\n```"
+                         if not ln.lstrip().startswith("%%|")).strip("\n")
+        return f"![Mermaid diagram]({mermaid_img_url(body)})"
     kept = []
     for c in cells:
         if c["cell_type"] == "markdown":
