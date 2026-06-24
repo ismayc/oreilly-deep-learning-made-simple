@@ -54,6 +54,22 @@ The `.ipynb` files are generated from the `.qmd` sources. To regenerate them (re
 python scripts/build-notebooks.py
 ```
 
+Colab's markdown engine can't render `mermaid` diagrams, so the build step rewrites each
+diagram to a pre-rendered PNG under `assets/diagrams/` (referenced from
+`raw.githubusercontent.com`, which Colab, GitHub, and nbviewer all display inline). A
+diagram is only (re)rendered when its PNG is missing, so a plain rebuild needs nothing
+extra. To render a **new or changed** diagram you also need
+[mermaid-cli](https://github.com/mermaid-js/mermaid-cli) and a Chrome/Chromium:
+
+```bash
+npm install -g @mermaid-js/mermaid-cli      # provides `mmdc`
+npx puppeteer browsers install chrome       # or point at a system Chrome
+export PUPPETEER_EXECUTABLE_PATH=/path/to/chrome   # if it isn't auto-detected
+```
+
+The `.qmd` sources keep native ```` ```{mermaid} ```` fences, which Quarto renders directly
+for the HTML site.
+
 ## Running locally instead of Colab
 
 If you aren't able to use Colab, you can run the notebooks on your own machine with 
