@@ -6,27 +6,36 @@ For each committed qmd we:
   2. drop the YAML front-matter cell and prepend a title (no "Open in Colab" badge --
      the notebooks open IN Colab, where that badge is redundant),
   2b. clean markdown cells: drop the HTML-only <style> block and rewrite Quarto
-      ```{mermaid} fences to mermaid.ink image links so the diagrams render in
-      Google Colab (whose markdown engine has no mermaid support); GitHub and
-      nbviewer display the same PNG,
+      ```{mermaid} fences to pre-rendered PNGs referenced from
+      raw.githubusercontent.com, so the diagrams render in Google Colab (whose
+      markdown engine has no mermaid support) as well as on GitHub/nbviewer,
   3. make the pip cell robust for a fresh Colab runtime,
   4. strip Quarto `#|` directive lines (noise in a plain notebook),
   5. clear outputs / execution counts and set a clean kernelspec.
 
 Usage:  python scripts/build-notebooks.py
-Requires: quarto on PATH.
+Requires: quarto on PATH. Diagrams are rendered with mermaid-cli (`mmdc`); a
+diagram is only (re)rendered when its PNG is missing, so a plain rebuild that
+doesn't change any diagram needs neither mmdc nor a browser. To render new or
+changed diagrams, install mermaid-cli and point it at a Chrome/Chromium:
+    npm install -g @mermaid-js/mermaid-cli       # provides `mmdc`
+    npx puppeteer browsers install chrome        # or use a system Chrome
+    export PUPPETEER_EXECUTABLE_PATH=/path/to/chrome   # if not auto-detected
+Override the mmdc binary with the MMDC env var if it isn't on PATH.
 """
-import base64
+import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
-import zlib
 from pathlib import Path
 
 REPO = "ismayc/oreilly-deep-learning-made-simple"
 BRANCH = "main"
 ROOT = Path(__file__).resolve().parent.parent
+DIAGRAMS_DIR = ROOT / "assets" / "diagrams"
+PUPPETEER_CFG = ROOT / "scripts" / "puppeteer-config.json"
 
 # (source qmd, output ipynb, add a Colab badge?) -- badge off: the notebooks are
 # opened IN Colab, so an "Open in Colab" badge inside them is redundant.
@@ -40,18 +49,46 @@ def colab_url(nb_name):
     return f"https://colab.research.google.com/github/{REPO}/blob/{BRANCH}/{nb_name}"
 
 
-def mermaid_img_url(code):
-    """Encode mermaid source as a mermaid.ink PNG link.
+def diagram_name(code):
+    """Content-addressed PNG name: identical diagrams share one file, and a
+    rebuild produces the same name (no churn) unless the source changes."""
+    return "diagram-" + hashlib.sha256(code.encode("utf-8")).hexdigest()[:12] + ".png"
 
-    Uses the same pako (zlib) + base64url scheme mermaid.live emits for its
-    "Copy Image Link", so mermaid.ink renders it server-side. The diagram is
-    fetched by the viewer's browser, which is why it works in Colab.
-    """
-    state = {"code": code, "mermaid": {"theme": "default"}}
-    raw = json.dumps(state, separators=(",", ":")).encode("utf-8")
-    comp = zlib.compress(raw, 9)             # zlib stream == pako.deflate default
-    b64 = base64.urlsafe_b64encode(comp).decode("ascii").rstrip("=")
-    return "https://mermaid.ink/img/pako:" + b64 + "?type=png"
+
+def diagram_raw_url(name):
+    return (f"https://raw.githubusercontent.com/{REPO}/{BRANCH}"
+            f"/assets/diagrams/{name}")
+
+
+def render_diagram(code, out_path):
+    """Render mermaid source to a PNG with mermaid-cli. Only called when the
+    target PNG is missing, so an unchanged rebuild needs no browser."""
+    mmdc = os.environ.get("MMDC", "mmdc")
+    DIAGRAMS_DIR.mkdir(parents=True, exist_ok=True)
+    src = out_path.with_suffix(".mmd")
+    src.write_text(code + "\n")
+    cmd = [mmdc, "-i", str(src), "-o", str(out_path), "-b", "white", "-s", "2"]
+    if PUPPETEER_CFG.exists():
+        cmd += ["-p", str(PUPPETEER_CFG)]
+    try:
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
+    except FileNotFoundError:
+        sys.exit(f"error: '{mmdc}' not found. Install mermaid-cli to render new "
+                 f"diagrams (see this script's header), or set MMDC.")
+    except subprocess.CalledProcessError as e:
+        sys.exit(f"error rendering {out_path.name}:\n{e.stderr or e.stdout}")
+    finally:
+        src.unlink(missing_ok=True)
+
+
+def mermaid_to_image(code):
+    """Render `code` if needed and return the markdown image referencing its
+    committed PNG via raw.githubusercontent.com."""
+    name = diagram_name(code)
+    out_path = DIAGRAMS_DIR / name
+    if not out_path.exists():
+        render_diagram(code, out_path)
+    return f"![Mermaid diagram]({diagram_raw_url(name)})"
 
 
 def title_cell(nb_name, badge):
@@ -97,13 +134,14 @@ def clean(nb_name, badge):
     cells = [c for c in cells if not is_yaml_cell(c)]
 
     # 1b) markdown cells: strip the HTML-only <style> block, and rewrite Quarto
-    #     ```{mermaid} fences (dropping `%%|` cell-options) to a mermaid.ink image
-    #     link. Colab's markdown engine has no mermaid support, so a fenced block
-    #     never renders there; an <img> does. GitHub/nbviewer show the same PNG.
+    #     ```{mermaid} fences (dropping `%%|` cell-options) to a pre-rendered PNG
+    #     referenced from raw.githubusercontent.com. Colab's markdown engine has
+    #     no mermaid support, so a fenced block never renders there; an <img>
+    #     does. GitHub/nbviewer show the same committed PNG.
     def _fix_mermaid(m):
         body = "\n".join(ln for ln in m.group(1).split("\n")
                          if not ln.lstrip().startswith("%%|")).strip("\n")
-        return f"![Mermaid diagram]({mermaid_img_url(body)})"
+        return mermaid_to_image(body)
     kept = []
     for c in cells:
         if c["cell_type"] == "markdown":
