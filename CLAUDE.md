@@ -40,3 +40,9 @@ python scripts/build-notebooks.py     # requires Quarto; needs mmdc only for new
 
 The image links point at the **`main`** branch, matching how Colab opens the notebooks,
 so diagrams resolve once changes are on `main`.
+
+**Who rebuilds:** Chester runs the rebuild (`build-notebooks.py` / `quarto render`)
+locally — Quarto isn't available in the remote session environment. So when editing
+content, change **only** the `.qmd` sources and let him regenerate the derived
+`.ipynb` / `.html` locally. Don't hand-edit the generated notebooks or HTML to keep
+them in sync.
