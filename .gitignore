@@ -16,6 +16,9 @@ exercises.html
 # Annotated instructor edition (local working file, not committed)
 *with_notes*
 
+# Claude project notes (local, not committed)
+CLAUDE.md
+
 *.docx
 
 # Deck source images (local working files; they get baked into the deck -> slides.pdf)
