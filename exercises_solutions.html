@@ -5532,13 +5532,12 @@ flowchart TD
 </div>
 <div id="9cdf85d2" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Whichever engine is active, this is how you check it:</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Active Keras engine:&quot;</span>, keras.backend.backend())</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Keras can also target:&quot;</span>, [<span class="st">&quot;tensorflow&quot;</span>, <span class="st">&quot;torch&quot;</span>, <span class="st">&quot;jax&quot;</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Active Keras engine:&quot;</span>, keras.backend.backend())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Active Keras engine: torch
-Keras can also target: [&#39;tensorflow&#39;, &#39;torch&#39;, &#39;jax&#39;]</code></pre>
+<pre><code>Active Keras engine: torch</code></pre>
 </div>
 </div>
+<p>Keras can also target: <code>tensorflow</code>, <code>torch</code>, and <code>jax</code>.</p>
 <blockquote class="blockquote">
 <p><strong>Why this matters for you:</strong> you learn <em>one</em> high-level API and stay portable. If your team standardizes on TensorFlow (or JAX) later, your Keras code comes along, only the one-line engine setting changes.</p>
 </blockquote>
