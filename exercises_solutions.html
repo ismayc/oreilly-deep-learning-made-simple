@@ -5434,13 +5434,13 @@ var requirejs,require,define;(function(global,setTimeout){var req,s,head,baseEle
 .cell-output-display .mermaid-js > svg { max-width: 100%; height: auto; }
 .cell-output-display .mermaid-js g.eng rect, .cell-output-display .mermaid-js g.engUsed rect { width: 130px !important; x: -65px !important; }
 </style>
-<div id="e6201eae" class="cell" data-execution_count="1">
+<div id="bf51485d" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run this once per session, then RESTART the runtime if Colab prompts you to.</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Colab already ships torch; we add/upgrade Keras 3 and the datasets library.</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>pip install <span class="op">-</span>q <span class="op">-</span>U keras datasets</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>pip install <span class="op">-</span>q scikit<span class="op">-</span>learn matplotlib pillow</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="08864ccc" class="cell" data-execution_count="2">
+<div id="41e97631" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run this setup cell FIRST. The backend must be chosen BEFORE keras is imported.</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>os.environ[<span class="st">&quot;KERAS_BACKEND&quot;</span>] <span class="op">=</span> <span class="st">&quot;torch&quot;</span></span>
@@ -5457,7 +5457,7 @@ var requirejs,require,define;(function(global,setTimeout){var req,s,head,baseEle
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>keras.utils.set_random_seed(<span class="dv">2026</span>)</span>
 <span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Keras&quot;</span>, keras.__version__, <span class="st">&quot;on backend:&quot;</span>, keras.backend.backend())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Keras 3.14.1 on backend: torch</code></pre>
+<pre><code>Keras 3.15.0 on backend: torch</code></pre>
 </div>
 </div>
 <section id="intro-getting-started-with-deep-learning-for-business" class="level1">
@@ -5524,13 +5524,13 @@ flowchart TD
 </tbody>
 </table>
 <p>We use <strong>PyTorch</strong> because it is the friendliest to learn and debug and the backend you are most likely to meet on the job. Because Keras 3 is engine-agnostic, it is a low-stakes choice either way.</p>
-<div id="402dfcd5" class="cell" data-execution_count="3">
+<div id="9b42f30a" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># To run this course on the TensorFlow engine instead of PyTorch, set this BEFORE</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># `import keras`, then restart the runtime (the engine is locked in once Keras imports).</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>os.environ[<span class="st">&quot;KERAS_BACKEND&quot;</span>] <span class="op">=</span> <span class="st">&quot;tensorflow&quot;</span>   <span class="co"># was &quot;torch&quot;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="9cdf85d2" class="cell" data-execution_count="4">
+<div id="c8814934" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Whichever engine is active, this is how you check it:</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Active Keras engine:&quot;</span>, keras.backend.backend())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -5546,7 +5546,7 @@ flowchart TD
 <h2 class="anchored" data-anchor-id="walkthrough-setting-up-keras-pytorch-backend-and-your-first-tensor">Walkthrough: Setting Up Keras (PyTorch backend) and Your First Tensor</h2>
 <section id="confirm-the-environment" class="level3">
 <h3 class="anchored" data-anchor-id="confirm-the-environment">Confirm the environment</h3>
-<div id="e31ef13e" class="cell" data-execution_count="5">
+<div id="65980d87" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> keras, torch</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Keras backend:&quot;</span>, keras.backend.backend())   <span class="co"># should say &#39;torch&#39;</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;PyTorch version:&quot;</span>, torch.__version__)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -5561,7 +5561,7 @@ PyTorch version: 2.12.1+cpu</code></pre>
 </section>
 <section id="a-first-tensor-operation" class="level3">
 <h3 class="anchored" data-anchor-id="a-first-tensor-operation">A first tensor operation</h3>
-<div id="8b27ae11" class="cell" data-execution_count="6">
+<div id="0eeaaea3" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A tensor is just an array the framework can run fast math on (and learn from)</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> keras.ops.array([[<span class="fl">1.0</span>, <span class="fl">2.0</span>], [<span class="fl">3.0</span>, <span class="fl">4.0</span>]])</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Sum of all elements:&quot;</span>, <span class="bu">float</span>(keras.ops.<span class="bu">sum</span>(x)))</span>
@@ -5575,7 +5575,7 @@ Column means: tensor([2., 3.])</code></pre>
 </section>
 <section id="exercise-confirm-your-environment" class="level2">
 <h2 class="anchored" data-anchor-id="exercise-confirm-your-environment">Exercise: Confirm Your Environment</h2>
-<div id="4fad15dd" class="cell" data-execution_count="7">
+<div id="0364e4fe" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Build a tiny one-line &quot;model&quot; and run data through it -- proves the stack works</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>layer <span class="op">=</span> keras.layers.Dense(<span class="dv">1</span>, activation<span class="op">=</span><span class="st">&quot;sigmoid&quot;</span>)</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>out <span class="op">=</span> layer(keras.ops.array([[<span class="fl">0.5</span>, <span class="op">-</span><span class="fl">1.2</span>, <span class="fl">3.0</span>]]))</span>
@@ -5597,7 +5597,7 @@ Column means: tensor([2., 3.])</code></pre>
 <h2 class="anchored" data-anchor-id="walkthrough-1.1-predicting-booking-cancellations-with-a-neural-network">Walkthrough 1.1: Predicting Booking Cancellations with a Neural Network</h2>
 <section id="load-and-inspect-the-data" class="level3">
 <h3 class="anchored" data-anchor-id="load-and-inspect-the-data">Load and inspect the data</h3>
-<div id="f8889d9d" class="cell" data-execution_count="8">
+<div id="fb94c573" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> (<span class="st">&quot;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/&quot;</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>       <span class="st">&quot;data/2020/2020-02-11/hotels.csv&quot;</span>)</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>hotels <span class="op">=</span> pd.read_csv(url)</span>
@@ -5746,7 +5746,7 @@ Column means: tensor([2., 3.])</code></pre>
 </tbody>
 </table>
 </details>
-<div id="c4e92de5" class="cell" data-execution_count="9">
+<div id="f2179e77" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># How often do guests cancel? (our target)</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>hotels[<span class="st">&quot;is_canceled&quot;</span>].value_counts(normalize<span class="op">=</span><span class="va">True</span>).<span class="bu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
@@ -5780,7 +5780,7 @@ flowchart TD
 </div>
 </div>
 </div>
-<div id="96d98960" class="cell" data-execution_count="10">
+<div id="fa4cddf6" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A handful of numeric drivers a revenue manager would recognize</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>features <span class="op">=</span> [<span class="st">&quot;lead_time&quot;</span>, <span class="st">&quot;stays_in_weekend_nights&quot;</span>, <span class="st">&quot;stays_in_week_nights&quot;</span>,</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;adults&quot;</span>, <span class="st">&quot;previous_cancellations&quot;</span>, <span class="st">&quot;booking_changes&quot;</span>,</span>
@@ -5829,7 +5829,7 @@ flowchart LR
 </div>
 </div>
 </div>
-<div id="908f100c" class="cell" data-execution_count="11">
+<div id="887bb7e2" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> keras.Sequential([</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    keras.layers.Input(shape<span class="op">=</span>(<span class="bu">len</span>(features),)),</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    keras.layers.Dense(<span class="dv">32</span>, activation<span class="op">=</span><span class="st">&quot;relu&quot;</span>),   <span class="co"># a &quot;team of specialists&quot;</span></span>
@@ -5886,7 +5886,7 @@ flowchart LR
 </div>
 </div>
 </div>
-<div id="7eeeac59" class="cell" data-execution_count="12">
+<div id="68df88c4" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>history <span class="op">=</span> model.fit(X_train, y_train, validation_data<span class="op">=</span>(X_val, y_val),</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>                    epochs<span class="op">=</span><span class="dv">10</span>, batch_size<span class="op">=</span><span class="dv">256</span>, verbose<span class="op">=</span><span class="dv">0</span>)</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Final validation accuracy:&quot;</span>,</span>
@@ -5895,7 +5895,7 @@ flowchart LR
 <pre><code>Final validation accuracy: 0.758</code></pre>
 </div>
 </div>
-<div id="35d77d77" class="cell" data-execution_count="13">
+<div id="6a45e75b" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>plt.plot(history.history[<span class="st">&quot;loss&quot;</span>], label<span class="op">=</span><span class="st">&quot;train loss&quot;</span>)</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>plt.plot(history.history[<span class="st">&quot;val_loss&quot;</span>], label<span class="op">=</span><span class="st">&quot;validation loss&quot;</span>)</span>
@@ -5913,7 +5913,7 @@ flowchart LR
 </section>
 <section id="visualize-can-the-model-tell-the-two-groups-apart" class="level3">
 <h3 class="anchored" data-anchor-id="visualize-can-the-model-tell-the-two-groups-apart">Visualize: can the model tell the two groups apart?</h3>
-<div id="cf7ae59c" class="cell" data-execution_count="14">
+<div id="a314f5aa" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A model that &quot;separates&quot; the classes pushes cancellations toward 1 and the rest</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="co"># toward 0. Overlapping histograms = an indecisive model.</span></span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>val_probs <span class="op">=</span> model.predict(X_val, verbose<span class="op">=</span><span class="dv">0</span>).ravel()</span>
@@ -5937,7 +5937,7 @@ flowchart LR
 </section>
 <section id="the-same-model-in-idiomatic-pytorch-reference" class="level3">
 <h3 class="anchored" data-anchor-id="the-same-model-in-idiomatic-pytorch-reference">The same model in idiomatic PyTorch (reference)</h3>
-<div id="e8c3b0e2" class="cell" data-execution_count="15">
+<div id="ebe178cb" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch.utils.data <span class="im">import</span> TensorDataset, DataLoader</span>
@@ -6013,7 +6013,7 @@ flowchart TD
 </div>
 </div>
 </div>
-<div id="a2794b9f" class="cell" data-execution_count="16">
+<div id="5f2e6679" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>reg_features <span class="op">=</span> hotels[features].copy()</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>adr_price <span class="op">=</span> hotels[<span class="st">&quot;adr&quot;</span>].astype(<span class="st">&quot;float32&quot;</span>)</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -6045,7 +6045,7 @@ flowchart TD
 <pre><code>Validation MAE (dollars off, on average): 33.5</code></pre>
 </div>
 </div>
-<div id="7e8b7533" class="cell" data-execution_count="17">
+<div id="06a5aabf" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Predicted vs actual price: points on the dashed line are perfect predictions</span></span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>pred_adr <span class="op">=</span> reg_model.predict(X_reg_val, verbose<span class="op">=</span><span class="dv">0</span>).ravel()</span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>plt.scatter(y_reg_val, pred_adr, s<span class="op">=</span><span class="dv">6</span>, alpha<span class="op">=</span><span class="fl">0.25</span>)</span>
@@ -6074,7 +6074,7 @@ flowchart TD
 <blockquote class="blockquote">
 <p>I’m using Keras 3 on the PyTorch backend. Here is my code and the full error message: [paste]. Explain the cause in plain English, give the smallest fix, then explain in one sentence each what my hidden Dense layers and the sigmoid output layer are doing.</p>
 </blockquote>
-<div id="d3d01d6e" class="cell" data-execution_count="18">
+<div id="73b22f1e" class="cell" data-execution_count="18">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Scratch space for 1.2 -- paste an error or a model summary here and work with your</span></span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co"># AI assistant. (Nothing to run yet; this cell is yours to experiment in.)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -6109,7 +6109,7 @@ flowchart TD
 <h2 class="anchored" data-anchor-id="walkthrough-2.1-auto-tagging-photos-with-a-pre-trained-cnn">Walkthrough 2.1: Auto-Tagging Photos with a Pre-Trained CNN</h2>
 <section id="grab-a-few-images" class="level3">
 <h3 class="anchored" data-anchor-id="grab-a-few-images">Grab a few images</h3>
-<div id="2ef56f4c" class="cell" data-execution_count="19">
+<div id="318f872e" class="cell" data-execution_count="19">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datasets <span class="im">import</span> load_dataset</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> PIL <span class="im">import</span> Image</span>
 <span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -6151,7 +6151,7 @@ flowchart TD
 </div>
 </div>
 </div>
-<div id="1ec4ede9" class="cell" data-execution_count="20">
+<div id="510a5307" class="cell" data-execution_count="20">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> keras.applications.mobilenet_v2 <span class="im">import</span> (</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    MobileNetV2, preprocess_input, decode_predictions)</span>
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -6174,15 +6174,9 @@ flowchart TD
 
 <span class="ansi-bold">       0/14536120</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 0s/step
 
-<span class="ansi-bold">  565248/14536120</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 0us/step
+<span class="ansi-bold">  933888/14536120</span> <span class="ansi-green-fg">━</span><span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 0us/step
 
-<span class="ansi-bold"> 3817472/14536120</span> <span class="ansi-green-fg">━━━━━</span><span class="ansi-white-fg">━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 0us/step
-
-<span class="ansi-bold"> 5980160/14536120</span> <span class="ansi-green-fg">━━━━━━━━</span><span class="ansi-white-fg">━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 0us/step
-
-<span class="ansi-bold"> 9699328/14536120</span> <span class="ansi-green-fg">━━━━━━━━━━━━━</span><span class="ansi-white-fg">━━━━━━━</span> <span class="ansi-bold">0s</span> 0us/step
-
-<span class="ansi-bold">12738560/14536120</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━</span><span class="ansi-white-fg">━━━</span> <span class="ansi-bold">0s</span> 0us/step
+<span class="ansi-bold"> 6299648/14536120</span> <span class="ansi-green-fg">━━━━━━━━</span><span class="ansi-white-fg">━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 0us/step
 
 <span class="ansi-bold">14536120/14536120</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 0us/step
 
@@ -6204,7 +6198,7 @@ true: beignets           model guess: plate (0.95)
 </div>
 </div>
 </div>
-<div id="3d686a18" class="cell" data-execution_count="21">
+<div id="1c7cf668" class="cell" data-execution_count="21">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the images with the model&#39;s guess -- seeing the picture makes the result land</span></span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">4</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="fl">3.2</span>))</span>
@@ -6232,7 +6226,7 @@ true: beignets           model guess: plate (0.95)
 <section id="exercise-2.1-fine-tune-a-classifier-for-your-categories" class="level2">
 <h2 class="anchored" data-anchor-id="exercise-2.1-fine-tune-a-classifier-for-your-categories">Exercise 2.1: Fine-Tune a Classifier for <em>Your</em> Categories</h2>
 <p>The pre-trained model knows ImageNet labels, not <em>your</em> product categories. Transfer learning fixes that: keep the model’s general “vision,” retrain only a small new head on your few categories.</p>
-<div id="d8074f32" class="cell" data-execution_count="22">
+<div id="a282a30e" class="cell" data-execution_count="22">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Build a small labeled set from 3 food categories (your &quot;product catalog&quot;)</span></span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>wanted <span class="op">=</span> [<span class="st">&quot;pizza&quot;</span>, <span class="st">&quot;hamburger&quot;</span>, <span class="st">&quot;sushi&quot;</span>]</span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Map each Food-101 category index to a fresh 0/1/2 label for our 3-class problem</span></span>
@@ -6276,7 +6270,7 @@ flowchart LR
 </div>
 </div>
 </div>
-<div id="3d195fc4" class="cell" data-execution_count="23">
+<div id="cfcd40f0" class="cell" data-execution_count="23">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Freeze the pre-trained base; train only a new classification head</span></span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>base <span class="op">=</span> MobileNetV2(input_shape<span class="op">=</span>(<span class="dv">160</span>, <span class="dv">160</span>, <span class="dv">3</span>), include_top<span class="op">=</span><span class="va">False</span>, weights<span class="op">=</span><span class="st">&quot;imagenet&quot;</span>)</span>
 <span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>base.trainable <span class="op">=</span> <span class="va">False</span></span>
@@ -6301,24 +6295,22 @@ flowchart LR
 
 <span class="ansi-bold">      0/9406464</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 0s/step
 
-<span class="ansi-bold"> 425984/9406464</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 0us/step
+<span class="ansi-bold"> 589824/9406464</span> <span class="ansi-green-fg">━</span><span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 0us/step
 
-<span class="ansi-bold">2662400/9406464</span> <span class="ansi-green-fg">━━━━━</span><span class="ansi-white-fg">━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 0us/step
-
-<span class="ansi-bold">6037504/9406464</span> <span class="ansi-green-fg">━━━━━━━━━━━━</span><span class="ansi-white-fg">━━━━━━━━</span> <span class="ansi-bold">0s</span> 0us/step
+<span class="ansi-bold">6234112/9406464</span> <span class="ansi-green-fg">━━━━━━━━━━━━━</span><span class="ansi-white-fg">━━━━━━━</span> <span class="ansi-bold">0s</span> 0us/step
 
 <span class="ansi-bold">9406464/9406464</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 0us/step
 </pre>
 </div>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="21">
-<pre><code>&lt;keras.src.callbacks.history.History at 0x7f41f0ebcb30&gt;</code></pre>
+<pre><code>&lt;keras.src.callbacks.history.History at 0x7fa85df94320&gt;</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Validation accuracy: 0.922</code></pre>
 </div>
 </div>
-<div id="427a8209" class="cell" data-execution_count="24">
+<div id="d82e2166" class="cell" data-execution_count="24">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Show 6 validation photos with the fine-tuned model&#39;s call (green = right, red = wrong)</span></span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>val_pred <span class="op">=</span> clf.predict(X_img_val, verbose<span class="op">=</span><span class="dv">0</span>).argmax(axis<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">6</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="fl">2.8</span>))</span>
@@ -6340,7 +6332,7 @@ flowchart LR
 </blockquote>
 <section id="idiomatic-pytorch-reference-transfer-learning-with-torchvision" class="level3">
 <h3 class="anchored" data-anchor-id="idiomatic-pytorch-reference-transfer-learning-with-torchvision">Idiomatic PyTorch (reference): transfer learning with torchvision</h3>
-<div id="fac10784" class="cell" data-execution_count="25">
+<div id="59be9345" class="cell" data-execution_count="25">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Equivalent pattern in raw PyTorch (run in an environment with torchvision):</span></span>
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch, torch.nn <span class="im">as</span> nn</span>
 <span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch.utils.data <span class="im">import</span> TensorDataset, DataLoader</span>
@@ -6390,7 +6382,7 @@ flowchart LR
 <blockquote class="blockquote">
 <p>Here is my Keras model summary: [paste the output of <code>clf.summary()</code>]. Explain what each layer does in business terms. Then suggest one change to improve accuracy and one to make the model smaller or faster, and describe the trade-offs of each.</p>
 </blockquote>
-<div id="131b90a5" class="cell" data-execution_count="26">
+<div id="77d71261" class="cell" data-execution_count="26">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Scratch space for 2.2 -- paste clf.summary() output here, or try a suggested tweak.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <blockquote class="blockquote">
@@ -6423,7 +6415,7 @@ flowchart LR
 <h2 class="anchored" data-anchor-id="walkthrough-3.1-sentiment-from-reviews-with-word-embeddings">Walkthrough 3.1: Sentiment from Reviews with Word Embeddings</h2>
 <section id="load-real-reviews" class="level3">
 <h3 class="anchored" data-anchor-id="load-real-reviews">Load real reviews</h3>
-<div id="a7bce250" class="cell" data-execution_count="27">
+<div id="773366a1" class="cell" data-execution_count="27">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datasets <span class="im">import</span> load_dataset</span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>stream <span class="op">=</span> load_dataset(<span class="st">&quot;fancyzhx/yelp_polarity&quot;</span>, split<span class="op">=</span><span class="st">&quot;train&quot;</span>, streaming<span class="op">=</span><span class="va">True</span>)</span>
@@ -6465,7 +6457,7 @@ flowchart TD
 </div>
 </div>
 </div>
-<div id="e5bb17e7" class="cell" data-execution_count="28">
+<div id="3b6dd39c" class="cell" data-execution_count="28">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> Counter</span>
 <span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> build_vocab(texts, max_tokens<span class="op">=</span><span class="dv">10000</span>):</span>
@@ -6494,7 +6486,7 @@ flowchart TD
 <blockquote class="blockquote">
 <p><strong>The TensorFlow-powered alternative:</strong> Keras 3 ships a convenience layer, <code>keras.layers.TextVectorization</code>, that does this tokenizing for you. It is powered by <strong>TensorFlow</strong> under the hood, so it needs TensorFlow available even on the PyTorch backend, Colab already ships it. We hand-rolled the tokenizer above to show exactly what “turning text into numbers” means; here is the one-layer TensorFlow version doing the same job:</p>
 </blockquote>
-<div id="52550683" class="cell" data-execution_count="29">
+<div id="0f460ad4" class="cell" data-execution_count="29">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># TensorFlow-backed text vectorization. Colab ships TensorFlow, so this runs as-is.</span></span>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> keras.layers <span class="im">import</span> TextVectorization</span>
 <span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -6510,7 +6502,7 @@ flowchart TD
 </section>
 <section id="build-an-embedding-model" class="level3">
 <h3 class="anchored" data-anchor-id="build-an-embedding-model">Build an embedding model</h3>
-<div id="6e1ddcb4" class="cell" data-execution_count="30">
+<div id="8253f7da" class="cell" data-execution_count="30">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>text_model <span class="op">=</span> keras.Sequential([</span>
 <span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>    keras.layers.Input(shape<span class="op">=</span>(MAX_LEN,)),</span>
 <span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>    keras.layers.Embedding(VOCAB_SIZE, <span class="dv">32</span>),        <span class="co"># the &quot;meaning as numbers&quot; map</span></span>
@@ -6530,7 +6522,7 @@ flowchart TD
 </section>
 <section id="try-it-on-your-own-sentences" class="level3">
 <h3 class="anchored" data-anchor-id="try-it-on-your-own-sentences">Try it on your own sentences</h3>
-<div id="10f6205a" class="cell" data-execution_count="31">
+<div id="d43b7351" class="cell" data-execution_count="31">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sentiment_of(sentence):</span>
 <span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>    ids <span class="op">=</span> encode([sentence], vocab, MAX_LEN)</span>
 <span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> <span class="bu">float</span>(text_model.predict(ids, verbose<span class="op">=</span><span class="dv">0</span>)[<span class="dv">0</span>][<span class="dv">0</span>])</span>
@@ -6544,7 +6536,7 @@ flowchart TD
 negative (0.31) &lt;- Waited an hour and the order was completely wrong</code></pre>
 </div>
 </div>
-<div id="30770971" class="cell" data-execution_count="32">
+<div id="33c2a1d0" class="cell" data-execution_count="32">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A bar chart turns raw probabilities into something you can show a stakeholder</span></span>
 <span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>examples <span class="op">=</span> [<span class="st">&quot;The staff were friendly and the food arrived hot&quot;</span>,</span>
 <span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;Best brunch in the neighborhood, will be back&quot;</span>,</span>
@@ -6569,7 +6561,7 @@ negative (0.31) &lt;- Waited an hour and the order was completely wrong</code></
 </section>
 <section id="idiomatic-pytorch-reference" class="level3">
 <h3 class="anchored" data-anchor-id="idiomatic-pytorch-reference">Idiomatic PyTorch (reference)</h3>
-<div id="7972c899" class="cell" data-execution_count="33">
+<div id="1d9153d9" class="cell" data-execution_count="33">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch, torch.nn <span class="im">as</span> nn</span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch.utils.data <span class="im">import</span> TensorDataset, DataLoader</span>
 <span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -6618,7 +6610,7 @@ negative (0.31) &lt;- Waited an hour and the order was completely wrong</code></
 </section>
 <section id="exercise-3.1-improve-and-stress-test-the-model" class="level2">
 <h2 class="anchored" data-anchor-id="exercise-3.1-improve-and-stress-test-the-model">Exercise 3.1: Improve and Stress-Test the Model</h2>
-<div id="f35578b1" class="cell" data-execution_count="34">
+<div id="74447046" class="cell" data-execution_count="34">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Idea 1: more vocabulary and a longer window often help -- try it</span></span>
 <span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>BIG_VOCAB_SIZE, BIG_MAX_LEN <span class="op">=</span> <span class="dv">15000</span>, <span class="dv">200</span></span>
 <span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>big_vocab <span class="op">=</span> build_vocab(texts, BIG_VOCAB_SIZE)</span>
@@ -6661,7 +6653,7 @@ flowchart TD
 </div>
 </div>
 </div>
-<div id="0f50dd05" class="cell" data-execution_count="35">
+<div id="7854f44a" class="cell" data-execution_count="35">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Stress-test: feed deliberately tricky reviews (sarcasm, negation) and watch where a</span></span>
 <span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a><span class="co"># word-averaging model slips -- it has no sense of word ORDER, so &quot;not great&quot; looks</span></span>
 <span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a><span class="co"># positive (it saw &quot;great&quot;). Add your own lines and see which ones fool it.</span></span>
@@ -6691,7 +6683,7 @@ positive (0.60) &lt;- I can&#39;t say I loved it</code></pre>
 <blockquote class="blockquote">
 <p>Here are my sentiment results: [paste the validation accuracy and 3-4 example reviews with their predicted scores]. Write a 3-sentence summary for a non-technical manager, what we found, why it matters, and one caution. Then write a more technical version for a data analyst.</p>
 </blockquote>
-<div id="14c20add" class="cell" data-execution_count="36">
+<div id="47b57490" class="cell" data-execution_count="36">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Scratch space for 3.2 -- assemble the numbers/examples you&#39;ll paste into your assistant.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <blockquote class="blockquote">
@@ -6746,7 +6738,7 @@ flowchart LR
 </div>
 </div>
 </div>
-<div id="51825ff9" class="cell" data-execution_count="37">
+<div id="39eb706b" class="cell" data-execution_count="37">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> (confusion_matrix, ConfusionMatrixDisplay,</span>
 <span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>                             precision_score, recall_score, f1_score)</span>
 <span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -6807,7 +6799,7 @@ flowchart TD
 </div>
 </div>
 </div>
-<div id="1f22e8c5" class="cell" data-execution_count="38">
+<div id="bf0c90dc" class="cell" data-execution_count="38">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;</span><span class="sc">{</span><span class="st">&#39;threshold&#39;</span><span class="sc">:&gt;10}</span><span class="ss"> </span><span class="sc">{</span><span class="st">&#39;precision&#39;</span><span class="sc">:&gt;10}</span><span class="ss"> </span><span class="sc">{</span><span class="st">&#39;recall&#39;</span><span class="sc">:&gt;8}</span><span class="ss">&quot;</span>)</span>
 <span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> thr <span class="kw">in</span> [<span class="fl">0.3</span>, <span class="fl">0.4</span>, <span class="fl">0.5</span>, <span class="fl">0.6</span>, <span class="fl">0.7</span>]:</span>
 <span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> (probs <span class="op">&gt;</span> thr).astype(<span class="bu">int</span>)</span>
@@ -6821,7 +6813,7 @@ flowchart TD
        0.7      0.862    0.323</code></pre>
 </div>
 </div>
-<div id="8c654f0d" class="cell" data-execution_count="39">
+<div id="caedaa65" class="cell" data-execution_count="39">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The trade-off, drawn: as the line moves left, you catch more but cry wolf more</span></span>
 <span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>grid <span class="op">=</span> np.linspace(<span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="dv">33</span>)</span>
 <span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>prec <span class="op">=</span> [precision_score(y_val, (probs <span class="op">&gt;</span> t).astype(<span class="bu">int</span>), zero_division<span class="op">=</span><span class="dv">0</span>) <span class="cf">for</span> t <span class="kw">in</span> grid]</span>
@@ -6840,7 +6832,7 @@ flowchart TD
 </div>
 </div>
 </div>
-<div id="fe9026cf" class="cell" data-execution_count="40">
+<div id="a87130f9" class="cell" data-execution_count="40">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb65"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Suppose missing a cancellation costs 4x a false alarm -&gt; favor recall</span></span>
 <span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>chosen <span class="op">=</span> <span class="fl">0.35</span></span>
 <span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> (probs <span class="op">&gt;</span> chosen).astype(<span class="bu">int</span>)</span>
@@ -6857,7 +6849,7 @@ flowchart TD
 <section id="walkthrough-exercise-4.2-from-feature-importance-to-an-ai-drafted-executive-summary" class="level2">
 <h2 class="anchored" data-anchor-id="walkthrough-exercise-4.2-from-feature-importance-to-an-ai-drafted-executive-summary">Walkthrough + Exercise 4.2: From Feature Importance to an AI-Drafted Executive Summary</h2>
 <p>First, open the black box. “It’s a black box” is the objection you will hear most. The simplest, model-agnostic way to see what drove the model is <strong>permutation importance</strong>: shuffle one feature at a time and watch how much accuracy drops. A big drop means the model leaned heavily on that feature; little drop means it barely used it.</p>
-<div id="becbf470" class="cell" data-execution_count="41">
+<div id="a18e41cb" class="cell" data-execution_count="41">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb67"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Permutation importance: shuffle each feature in turn and measure the accuracy it costs.</span></span>
 <span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Bigger drop = the model relied on that feature more. (Reuses the Module 1 model + X_val.)</span></span>
 <span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -6889,7 +6881,7 @@ flowchart TD
 <blockquote class="blockquote">
 <p>Given these results, precision [X] and recall [Y] at a decision threshold of [T], where missing a cancellation costs about 4x a false alarm, plus the top drivers [paste the highest-importance features above]. Write a 3-sentence executive summary: the decision, the business impact, and the main risk, and end with a one-line plain-English “why.”</p>
 </blockquote>
-<div id="8cf08733" class="cell" data-execution_count="42">
+<div id="ba60dbf5" class="cell" data-execution_count="42">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb68"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Scratch space for 4.2 -- paste your threshold&#39;s precision/recall and the top features here.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <blockquote class="blockquote">
@@ -6921,7 +6913,7 @@ flowchart LR
 </div>
 </div>
 </div>
-<div id="199ca203" class="cell" data-execution_count="43">
+<div id="69ded5f7" class="cell" data-execution_count="43">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb69"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Export the trained Module 1 cancellation model as a TensorFlow SavedModel.</span></span>
 <span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a><span class="co"># `model.export()` writes a TF SavedModel regardless of the active Keras engine.</span></span>
 <span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>model.export(<span class="st">&quot;hotel_cancel_savedmodel&quot;</span>)     <span class="co"># -&gt; a folder a serving stack can load</span></span>
