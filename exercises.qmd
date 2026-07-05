@@ -110,8 +110,9 @@ os.environ["KERAS_BACKEND"] = "tensorflow"   # was "torch"
 ```{python}
 # Whichever engine is active, this is how you check it:
 print("Active Keras engine:", keras.backend.backend())
-print("Keras can also target:", ["tensorflow", "torch", "jax"])
 ```
+
+Keras can also target: `tensorflow`, `torch`, and `jax`.
 
 > **Why this matters for you:** you learn *one* high-level API and stay portable. If your
 > team standardizes on TensorFlow (or JAX) later, your Keras code comes along, only the

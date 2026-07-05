@@ -107,8 +107,9 @@ os.environ["KERAS_BACKEND"] = "tensorflow"   # was "torch"
 ```{python}
 # Whichever engine is active, this is how you check it:
 print("Active Keras engine:", keras.backend.backend())
-print("Keras can also target:", ["tensorflow", "torch", "jax"])
 ```
+
+Keras can also target: `tensorflow`, `torch`, and `jax`.
 
 > **Why this matters for you:** you learn *one* high-level API and stay portable. If your
 > team standardizes on TensorFlow (or JAX) later, your Keras code comes along, only the
@@ -639,6 +640,7 @@ plt.suptitle("Fine-tuned model on YOUR categories"); plt.tight_layout(); plt.sho
 #| eval: false
 # Equivalent pattern in raw PyTorch (run in an environment with torchvision):
 import torch, torch.nn as nn
+from torch.utils.data import TensorDataset, DataLoader
 from torchvision import models, transforms
 
 weights = models.MobileNet_V2_Weights.IMAGENET1K_V1
@@ -648,9 +650,33 @@ for p in net.parameters():            # freeze the base
 net.classifier[1] = nn.Linear(net.last_channel, len(wanted))  # new head
 
 prep = weights.transforms()           # the model's own preprocessing
-opt = torch.optim.Adam(net.classifier.parameters(), lr=1e-3)
-loss_fn = nn.CrossEntropyLoss()
-# ... standard train loop: for each batch -> opt.zero_grad(); loss.backward(); opt.step()
+opt = torch.optim.Adam(net.classifier.parameters(), lr=1e-3)  # only the head has gradients
+loss_fn = nn.CrossEntropyLoss()       # expects raw logits + integer labels
+
+# Reuse the same images/labels; torchvision wants channels-first tensors in [0, 1]
+X_img_train_t = torch.tensor(X_img_train).permute(0, 3, 1, 2) / 255.0  # NHWC -> NCHW
+X_img_val_t = torch.tensor(X_img_val).permute(0, 3, 1, 2) / 255.0
+y_img_train_t = torch.tensor(y_img_train)
+y_img_val_t = torch.tensor(y_img_val)
+
+train_loader = DataLoader(
+    TensorDataset(X_img_train_t, y_img_train_t), batch_size=16, shuffle=True)
+
+# Same training loop shape as Modules 1 and 3
+for epoch in range(5):
+    net.train()
+    for x_batch, y_batch in train_loader:
+        opt.zero_grad()                      # clear last step's gradients
+        loss = loss_fn(net(prep(x_batch)), y_batch)  # prep applies the model's normalization
+        loss.backward()                      # measure how to improve
+        opt.step()                           # nudge the head's weights
+
+# Evaluate the same way as the Keras model above
+net.eval()
+with torch.no_grad():
+    logits = net(prep(X_img_val_t))
+    val_acc = (logits.argmax(1) == y_img_val_t).float().mean().item()
+print("PyTorch validation accuracy:", round(val_acc, 3))
 ```
 
 ## Walkthrough + Exercise 2.2: Use GenAI to Explain Layers and Suggest Improvements
