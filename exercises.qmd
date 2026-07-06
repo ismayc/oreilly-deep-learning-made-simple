@@ -28,14 +28,16 @@ itself when you run its cell.
 
 ```{python}
 #| eval: false
-# Run this once per session, then RESTART the runtime if Colab prompts you to.
-# Colab already ships torch; we add/upgrade Keras 3 and the datasets library.
+# Run this once per session, then RESTART the runtime if
+# Colab prompts you to. Colab already ships torch; we
+# add/upgrade Keras 3 and the datasets library.
 !pip install -q -U keras datasets
 !pip install -q scikit-learn matplotlib pillow
 ```
 
 ```{python}
-# Run this setup cell FIRST. The backend must be chosen BEFORE keras is imported.
+# Run this setup cell FIRST. The backend must be chosen
+# BEFORE keras is imported.
 import os
 os.environ["KERAS_BACKEND"] = "torch"
 
@@ -49,7 +51,8 @@ from IPython.core.interactiveshell import InteractiveShell
 InteractiveShell.ast_node_interactivity = "all"
 
 keras.utils.set_random_seed(2026)
-print("Keras", keras.__version__, "on backend:", keras.backend.backend())
+print("Keras", keras.__version__, "on backend:",
+      keras.backend.backend())
 ```
 
 # Intro: Getting Started with Deep Learning for Business
@@ -91,9 +94,9 @@ the short version of when each one shines:
 
 | Engine | Strengths | Trade-offs |
 |---|---|---|
-| **PyTorch** *(our choice)* | Pythonic and easy to debug; dominant in research and now common in industry; huge ecosystem of models and tutorials | Production serving tooling was historically less turnkey than TensorFlow's |
-| **TensorFlow** | Mature deployment stack (TF Serving, TFLite, on-device); battle-tested at scale | More boilerplate; less convenient for quick, interactive experimentation |
-| **JAX** | Very fast, especially on TPUs; composable `jit`, `grad`, and `vmap` for cutting-edge research | Smaller ecosystem and a steeper learning curve; least beginner-friendly |
+| **PyTorch** *(our choice)* | Pythonic, easy to debug; huge model and tutorial ecosystem; now common in industry | Serving tooling historically less turnkey than TensorFlow |
+| **TensorFlow** | Mature deployment (TF Serving, TFLite, on-device); proven at scale | More boilerplate; less handy for quick, interactive work |
+| **JAX** | Very fast on TPUs; composable `jit`, `grad`, `vmap` for research | Smaller ecosystem; steeper curve; least beginner-friendly |
 
 We use **PyTorch** because it is the friendliest to learn and debug and the backend you
 are most likely to meet on the job. Because Keras 3 is engine-agnostic, it is a low-stakes
@@ -101,8 +104,9 @@ choice either way.
 
 ```{python}
 #| eval: false
-# To run this course on the TensorFlow engine instead of PyTorch, set this BEFORE
-# `import keras`, then restart the runtime (the engine is locked in once Keras imports).
+# To run this course on the TensorFlow engine instead of
+# PyTorch, set this BEFORE `import keras`, then restart the
+# runtime (the engine is locked in once Keras imports).
 import os
 os.environ["KERAS_BACKEND"] = "tensorflow"   # was "torch"
 ```
@@ -124,7 +128,8 @@ Keras can also target: `tensorflow`, `torch`, and `jax`.
 
 ```{python}
 import keras, torch
-print("Keras backend:", keras.backend.backend())   # should say 'torch'
+# should say 'torch'
+print("Keras backend:", keras.backend.backend())
 print("PyTorch version:", torch.__version__)
 ```
 
@@ -135,7 +140,8 @@ print("PyTorch version:", torch.__version__)
 ### A first tensor operation
 
 ```{python}
-# A tensor is just an array the framework can run fast math on (and learn from)
+# A tensor is just an array the framework can run fast math
+# on (and learn from)
 x = keras.ops.array([[1.0, 2.0], [3.0, 4.0]])
 print("Sum of all elements:", float(keras.ops.sum(x)))
 print("Column means:", keras.ops.mean(x, axis=0))
@@ -144,7 +150,8 @@ print("Column means:", keras.ops.mean(x, axis=0))
 ## Exercise: Confirm Your Environment
 
 ```{python}
-# Build a tiny one-line "model" and run data through it -- proves the stack works
+# Build a tiny one-line "model" and run data through it --
+# proves the stack works
 layer = keras.layers.Dense(1, activation="sigmoid")
 out = layer(keras.ops.array([[0.5, -1.2, 3.0]]))
 print("Output shape:", out.shape)
@@ -215,13 +222,15 @@ flowchart TD
 ```
 
 ```{python}
-# A handful of numeric drivers a revenue manager would recognize
+# A handful of numeric drivers a revenue manager would
+# recognize
 
 
 
 
-# Neural networks train far better on standardized inputs. Fit the shift/scale on the
-# TRAINING data only, then apply the SAME numbers to validation (see the pitfall below).
+# Neural networks train far better on standardized inputs.
+# Fit the shift/scale on the TRAINING data only, then apply
+# the SAME numbers to validation (see the pitfall below).
 ```
 
 > **Common Pitfall:** Standardize using statistics from the **training** data only,
@@ -267,7 +276,8 @@ flowchart LR
 ```{python}
 import matplotlib.pyplot as plt
 plt.plot(history.history["loss"], label="train loss")
-plt.plot(history.history["val_loss"], label="validation loss")
+plt.plot(history.history["val_loss"],
+         label="validation loss")
 plt.xlabel("epoch"); plt.ylabel("loss"); plt.legend()
 plt.title("The falling loss IS the model learning")
 plt.show()
@@ -276,14 +286,20 @@ plt.show()
 ### Visualize: can the model tell the two groups apart?
 
 ```{python}
-# A model that "separates" the classes pushes cancellations toward 1 and the rest
-# toward 0. Overlapping histograms = an indecisive model.
+# A model that "separates" the classes pushes cancellations
+# toward 1 and the rest toward 0. Overlapping histograms =
+# an indecisive model.
 val_probs = model.predict(X_val, verbose=0).ravel()
-plt.hist(val_probs[y_val == 0], bins=30, alpha=0.6, label="actually kept")
-plt.hist(val_probs[y_val == 1], bins=30, alpha=0.6, label="actually canceled")
-plt.axvline(0.5, color="k", ls="--", lw=1, label="default threshold")
-plt.xlabel("predicted cancellation probability"); plt.ylabel("number of bookings")
-plt.legend(); plt.title("Separation is the model's confidence, made visible")
+plt.hist(val_probs[y_val == 0], bins=30, alpha=0.6,
+         label="actually kept")
+plt.hist(val_probs[y_val == 1], bins=30, alpha=0.6,
+         label="actually canceled")
+plt.axvline(0.5, color="k", ls="--", lw=1,
+            label="default threshold")
+plt.xlabel("predicted cancellation probability")
+plt.ylabel("number of bookings")
+plt.legend()
+plt.title("Separation is the model's confidence, made visible")
 plt.show()
 ```
 
@@ -312,16 +328,23 @@ flowchart TD
 ```
 
 ```{python}
-# Data prep is the same recipe as the walkthrough -- run it and move on.
+# Data prep is the same recipe as the walkthrough -- run it
+# and move on.
 reg_features = hotels[features].copy()
 adr_price = hotels["adr"].astype("float32")
-# Keep rows with no missing features, a valid price, and a sensible range (drop outliers > $1000)
-keep = reg_features.notna().all(axis=1) & adr_price.notna() & (hotels["adr"].between(0, 1000))
+# Keep rows with no missing features, a valid price, and a
+# sensible range (drop outliers > $1000)
+keep = (
+    reg_features.notna().all(axis=1)
+    & adr_price.notna()
+    & (hotels["adr"].between(0, 1000))
+)
 X_reg = reg_features[keep].drop(columns=["adr"]).values.astype("float32")
 y_reg = adr_price[keep].values
 X_reg_train, X_reg_val, y_reg_train, y_reg_val = train_test_split(
     X_reg, y_reg, test_size=0.2, random_state=2026)
-# Standardize on the training split only, then apply to validation (same rule as the walkthrough)
+# Standardize on the training split only, then apply to
+# validation (same rule as the walkthrough)
 reg_mean, reg_std = X_reg_train.mean(0), X_reg_train.std(0) + 1e-8
 X_reg_train = (X_reg_train - reg_mean) / reg_std
 X_reg_val = (X_reg_val - reg_mean) / reg_std
@@ -329,21 +352,25 @@ print("Regression features:", X_reg.shape)
 ```
 
 ```{python}
-# We'll build this together. Two choices flip this from a classifier to a REGRESSION
-# model -- notice each one as we go:
-#   * the output Dense layer has NO activation, so it can predict ANY dollar amount
-#   * the loss is "mse" (mean squared error), which measures how many dollars off we are
+# We'll build this together. Two choices flip this from a
+# classifier to a REGRESSION model -- notice each one as we
+# go: * the output Dense layer has NO activation, so it can
+# predict ANY dollar amount * the loss is "mse" (mean
+# squared error), which measures how many dollars off we are
 ```
 
 ```{python}
-# Visualize results: predicted vs actual price (points on the dashed line = perfect)
+# Visualize results: predicted vs actual price (points on
+# the dashed line = perfect)
 pred_adr = reg_model.predict(X_reg_val, verbose=0).ravel()
 plt.scatter(y_reg_val, pred_adr, s=6, alpha=0.25)
 lim = [0, 400]
 plt.plot(lim, lim, "r--", label="perfect prediction")
 plt.xlim(lim); plt.ylim(lim)
-plt.xlabel("actual ADR ($)"); plt.ylabel("predicted ADR ($)")
-plt.legend(); plt.title("Where the price model is tight -- and where it drifts")
+plt.xlabel("actual ADR ($)")
+plt.ylabel("predicted ADR ($)")
+plt.legend()
+plt.title("Where the price model is tight -- and where it drifts")
 plt.show()
 ```
 
@@ -365,8 +392,9 @@ haven't re-run).
 > sentence each what my hidden Dense layers and the sigmoid output layer are doing.
 
 ```{python}
-# Scratch space for 1.2 -- paste an error or a model summary here and work with your
-# AI assistant. (Nothing to run yet; this cell is yours to experiment in.)
+# Scratch space for 1.2 -- paste an error or a model summary
+# here and work with your AI assistant. (Nothing to run yet;
+# this cell is yours to experiment in.)
 ```
 
 > **GenAI tip:** Apply the suggested fix, then **re-run the cell** to confirm it works.
@@ -407,7 +435,8 @@ training on millions of images ourselves (transfer learning).
 from datasets import load_dataset
 from PIL import Image
 
-food = load_dataset("ethz/food101", split="train", streaming=True)
+food = load_dataset("ethz/food101", split="train",
+                    streaming=True)
 class_names = food.features["label"].names
 
 samples = []
@@ -415,7 +444,8 @@ for row in food:
     samples.append(row)
     if len(samples) >= 6:
         break
-print("Example categories in this dataset:", class_names[:8], "...")
+print("Example categories in this dataset:",
+      class_names[:8], "...")
 ```
 
 ### Let a pre-trained model label them
@@ -440,14 +470,19 @@ flowchart TD
 from keras.applications.mobilenet_v2 import (
     MobileNetV2, preprocess_input, decode_predictions)
 
-pretrained = MobileNetV2(weights="imagenet")   # trained on millions of images
+# trained on millions of images
+pretrained = MobileNetV2(weights="imagenet")
 
 def predict_label(pil_img):
     img = pil_img.convert("RGB").resize((224, 224))
-    batch = np.array(img, dtype="float32")[None]   # [None] wraps one image in a batch of 1
-    arr = preprocess_input(batch)                  # the preprocessing this model expects
-    top = decode_predictions(pretrained.predict(arr, verbose=0), top=1)[0][0]
-    return top[1], round(float(top[2]), 2)   # (label, confidence)
+    # [None] wraps one image in a batch of 1
+    batch = np.array(img, dtype="float32")[None]
+    # the preprocessing this model expects
+    arr = preprocess_input(batch)
+    top = decode_predictions(
+        pretrained.predict(arr, verbose=0), top=1)[0][0]
+    # (label, confidence)
+    return top[1], round(float(top[2]), 2)
 
 for row in samples[:4]:
     guess, conf = predict_label(row["image"])
@@ -455,13 +490,16 @@ for row in samples[:4]:
 ```
 
 ```{python}
-# Show the images with the model's guess -- seeing the picture makes the result land
+# Show the images with the model's guess -- seeing the
+# picture makes the result land
 import matplotlib.pyplot as plt
 fig, axes = plt.subplots(1, 4, figsize=(12, 3.2))
 for ax, row in zip(axes, samples[:4]):
     guess, conf = predict_label(row["image"])
     ax.imshow(row["image"]); ax.axis("off")
-    ax.set_title(f"true: {class_names[row['label']]}\nguess: {guess} ({conf})", fontsize=9)
+    ax.set_title(
+        f"true: {class_names[row['label']]}\nguess: {guess} ({conf})",
+        fontsize=9)
 plt.tight_layout(); plt.show()
 ```
 
@@ -492,28 +530,40 @@ flowchart LR
 ```
 
 ```{python}
-# YOUR CALL: pick 3 categories that exist in class_names (print class_names to browse).
-# Swap these for whatever "product catalog" you want to recognize.
+# YOUR CALL: pick 3 categories that exist in class_names
+# (print class_names to browse). Swap these for whatever
+# "product catalog" you want to recognize.
 
-# Map each Food-101 category index to a fresh 0/1/2 label for our 3-class problem
+# Map each Food-101 category index to a fresh 0/1/2 label
+# for our 3-class problem
 
 
-# Build a small labeled set (~120 images each) -- run this to assemble your data.
+# Build a small labeled set (~120 images each) -- run this
+# to assemble your data.
 ```
 
 ```{python}
-# The transfer-learning move (we'll build this together): keep the base FROZEN so its
-# general vision is preserved, and train only the small new head on top.
+# The transfer-learning move (we'll build this together):
+# keep the base FROZEN so its general vision is preserved,
+# and train only the small new head on top.
 ```
 
 ```{python}
-# Visualize: 6 validation photos with the model's call (green = right, red = wrong)
+# Visualize: 6 validation photos with the model's call
+# (green = right, red = wrong)
 val_pred = clf.predict(X_img_val, verbose=0).argmax(axis=1)
 fig, axes = plt.subplots(1, 6, figsize=(14, 2.8))
-for ax, img, true_i, pred_i in zip(axes, X_img_val[:6], y_img_val[:6], val_pred[:6]):
+for ax, img, true_i, pred_i in zip(axes, X_img_val[:6],
+                                   y_img_val[:6],
+                                   val_pred[:6]):
     ax.imshow(img.astype("uint8")); ax.axis("off")
-    ax.set_title(wanted[pred_i], color="green" if true_i == pred_i else "red", fontsize=10)
-plt.suptitle("Fine-tuned model on YOUR categories"); plt.tight_layout(); plt.show()
+    ax.set_title(
+        wanted[pred_i],
+        color="green" if true_i == pred_i else "red",
+        fontsize=10)
+plt.suptitle("Fine-tuned model on YOUR categories")
+plt.tight_layout()
+plt.show()
 ```
 
 > **Common Pitfall:** Keep the pre-trained base **frozen** (`base.trainable = False`)
@@ -532,7 +582,8 @@ use case. Then test, don't just trust.
 > the model smaller or faster, and describe the trade-offs of each.
 
 ```{python}
-# Scratch space for 2.2 -- paste clf.summary() output here, or try a suggested tweak.
+# Scratch space for 2.2 -- paste clf.summary() output here,
+# or try a suggested tweak.
 ```
 
 > **GenAI tip:** Apply only ONE suggested change at a time and re-evaluate, so you can see
@@ -567,10 +618,13 @@ text. We use real **Yelp business reviews**.
 ```{python}
 from datasets import load_dataset
 
-stream = load_dataset("fancyzhx/yelp_polarity", split="train", streaming=True)
+stream = load_dataset("fancyzhx/yelp_polarity",
+                      split="train", streaming=True)
 texts, sentiments = [], []
 for i, row in enumerate(stream):
-    texts.append(row["text"]); sentiments.append(row["label"])  # 0 = negative, 1 = positive
+    # 0 = negative, 1 = positive
+    texts.append(row["text"])
+    sentiments.append(row["label"])
     if i >= 5999:
         break
 sentiments = np.array(sentiments, dtype="float32")
@@ -602,13 +656,16 @@ from collections import Counter
 def build_vocab(texts, max_tokens=10000):
     # Count how often each word appears across every review
     counts = Counter(word for text in texts for word in text.lower().split())
-    # Give each common word an ID, starting at 2 so 0 stays "padding" and 1 stays "unknown"
+    # Give each common word an ID, starting at 2 so 0 stays
+    # "padding" and 1 stays "unknown"
     return {word: i + 2 for i, (word, _) in enumerate(counts.most_common(max_tokens - 2))}
 
 def encode(texts, vocab, max_len=150):
-    out = np.zeros((len(texts), max_len), dtype="int64")   # rows of zeros = pre-padded
+    # rows of zeros = pre-padded
+    out = np.zeros((len(texts), max_len), dtype="int64")
     for i, text in enumerate(texts):
-        ids = [vocab.get(word, 1) for word in text.lower().split()][:max_len]  # 1 = unknown word
+        # 1 = unknown word
+        ids = [vocab.get(word, 1) for word in text.lower().split()][:max_len]
         out[i, :len(ids)] = ids
     return out
 
@@ -616,7 +673,8 @@ VOCAB_SIZE, MAX_LEN = 10000, 150
 vocab = build_vocab(texts, VOCAB_SIZE)
 X_text = encode(texts, vocab, MAX_LEN)
 X_text_train, X_text_val, y_text_train, y_text_val = train_test_split(
-    X_text, sentiments, test_size=0.2, random_state=2026, stratify=sentiments)
+    X_text, sentiments, test_size=0.2, random_state=2026,
+    stratify=sentiments)
 print("Encoded shape:", X_text.shape)
 ```
 
@@ -629,13 +687,17 @@ print("Encoded shape:", X_text.shape)
 
 ```{python}
 #| eval: false
-# TensorFlow-backed text vectorization. Colab ships TensorFlow, so this runs as-is.
+# TensorFlow-backed text vectorization. Colab ships
+# TensorFlow, so this runs as-is.
 from keras.layers import TextVectorization
 
-vectorizer = TextVectorization(max_tokens=VOCAB_SIZE, output_sequence_length=MAX_LEN)
-vectorizer.adapt(texts)                    # learns the vocabulary from the reviews (via TF)
+vectorizer = TextVectorization(
+    max_tokens=VOCAB_SIZE, output_sequence_length=MAX_LEN)
+# learns the vocabulary from the reviews (via TF)
+vectorizer.adapt(texts)
 demo = vectorizer(["the staff were friendly and the food arrived hot"])
-print("TextVectorization output shape:", tuple(demo.shape))   # (1, MAX_LEN)
+# (1, MAX_LEN)
+print("TextVectorization output shape:", tuple(demo.shape))
 print("First 12 token IDs:", [int(t) for t in demo[0][:12]])
 ```
 
@@ -662,7 +724,8 @@ for s in ["The staff were friendly and the food arrived hot",
 ```
 
 ```{python}
-# A bar chart turns raw probabilities into something you can show a stakeholder
+# A bar chart turns raw probabilities into something you can
+# show a stakeholder
 examples = ["The staff were friendly and the food arrived hot",
             "Best brunch in the neighborhood, will be back",
             "Waited an hour and the order was completely wrong",
@@ -671,10 +734,13 @@ scores = [float(text_model.predict(encode([s], vocab, MAX_LEN), verbose=0)[0][0]
           for s in examples]
 colors = ["seagreen" if p > 0.5 else "indianred" for p in scores]
 plt.barh(range(len(examples)), scores, color=colors)
-plt.yticks(range(len(examples)), [s[:32] + "..." for s in examples], fontsize=8)
+plt.yticks(range(len(examples)),
+           [s[:32] + "..." for s in examples], fontsize=8)
 plt.axvline(0.5, color="k", ls="--", lw=1)
 plt.xlabel("predicted positivity"); plt.xlim(0, 1)
-plt.title("Sentiment score per review"); plt.tight_layout(); plt.show()
+plt.title("Sentiment score per review")
+plt.tight_layout()
+plt.show()
 ```
 
 ## Exercise 3.1: Improve and Stress-Test the Model
@@ -693,13 +759,16 @@ flowchart TD
 ```
 
 ```{python}
-# Lever to pull: a BIGGER vocabulary and a LONGER window. Run it, then compare the
-# validation accuracy to the walkthrough -- more capacity doesn't always win.
-BIG_VOCAB_SIZE, BIG_MAX_LEN = 15000, 200          # <- try other sizes and see
+# Lever to pull: a BIGGER vocabulary and a LONGER window.
+# Run it, then compare the validation accuracy to the
+# walkthrough -- more capacity doesn't always win.
+# <- try other sizes and see
+BIG_VOCAB_SIZE, BIG_MAX_LEN = 15000, 200
 big_vocab = build_vocab(texts, BIG_VOCAB_SIZE)
 X_big = encode(texts, big_vocab, BIG_MAX_LEN)
 X_big_train, X_big_val, y_big_train, y_big_val = train_test_split(
-    X_big, sentiments, test_size=0.2, random_state=2026, stratify=sentiments)
+    X_big, sentiments, test_size=0.2, random_state=2026,
+    stratify=sentiments)
 big_model = keras.Sequential([
     keras.layers.Input(shape=(BIG_MAX_LEN,)),
     keras.layers.Embedding(BIG_VOCAB_SIZE, 32),
@@ -707,16 +776,21 @@ big_model = keras.Sequential([
     keras.layers.Dense(32, activation="relu"),
     keras.layers.Dense(1, activation="sigmoid"),
 ])
-big_model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
-big_hist = big_model.fit(X_big_train, y_big_train,
-                         validation_data=(X_big_val, y_big_val),
-                         epochs=5, batch_size=64, verbose=0)
-print("Bigger-vocab validation accuracy:", round(float(big_hist.history["val_accuracy"][-1]), 3))
+big_model.compile(optimizer="adam",
+                  loss="binary_crossentropy",
+                  metrics=["accuracy"])
+big_hist = big_model.fit(
+    X_big_train, y_big_train,
+    validation_data=(X_big_val, y_big_val), epochs=5,
+    batch_size=64, verbose=0)
+print("Bigger-vocab validation accuracy:",
+      round(float(big_hist.history["val_accuracy"][-1]), 3))
 ```
 
 ```{python}
-# YOUR TURN: write tricky reviews (sarcasm, "not great", "would not recommend") and
-# see where a word-averaging model slips. Add your own lines to this list.
+# YOUR TURN: write tricky reviews (sarcasm, "not great",
+# "would not recommend") and see where a word-averaging
+# model slips. Add your own lines to this list.
 
     # add 2-3 of your own here...
 ```
@@ -738,7 +812,8 @@ raw numbers into a short narrative two different audiences can act on.
 > data analyst.
 
 ```{python}
-# Scratch space for 3.2 -- assemble the numbers/examples you'll paste into your assistant.
+# Scratch space for 3.2 -- assemble the numbers/examples
+# you'll paste into your assistant.
 ```
 
 > **GenAI tip:** Fact-check every number the assistant repeats before it goes in a deck.
@@ -786,7 +861,8 @@ flowchart LR
 ```
 
 ```{python}
-# The bar to beat: always guessing the majority class ("not canceled")
+# The bar to beat: always guessing the majority class ("not
+# canceled")
 ```
 
 > **Common Pitfall:** Accuracy alone hides the costly errors. Read the confusion
@@ -814,7 +890,8 @@ flowchart TD
 ```
 
 ```{python}
-# The probabilities come from the Module 1 cancellation model.
+# The probabilities come from the Module 1 cancellation
+# model.
 ```
 
 ```{python}
@@ -824,15 +901,19 @@ prec = [precision_score(y_val, (probs > t).astype(int), zero_division=0) for t i
 rec = [recall_score(y_val, (probs > t).astype(int)) for t in grid]
 plt.plot(grid, prec, label="precision")
 plt.plot(grid, rec, label="recall")
-plt.axvline(0.35, color="k", ls="--", lw=1, label="a recall-leaning choice")
-plt.xlabel("decision threshold"); plt.ylabel("score"); plt.legend()
+plt.axvline(0.35, color="k", ls="--", lw=1,
+            label="a recall-leaning choice")
+plt.xlabel("decision threshold")
+plt.ylabel("score")
+plt.legend()
 plt.title("Precision vs recall is a dial you set to the business cost")
 plt.show()
 ```
 
 ```{python}
-# YOUR DECISION: missing a cancellation costs ~4x a false alarm, so lean toward recall.
-# Change `chosen` and read the consequence out loud in business terms.
+# YOUR DECISION: missing a cancellation costs ~4x a false
+# alarm, so lean toward recall. Change `chosen` and read the
+# consequence out loud in business terms.
 ```
 
 > **GenAI tip:** Feed these numbers to an AI assistant and ask for a 3-sentence
@@ -847,8 +928,10 @@ shuffle one feature at a time and watch how much accuracy drops. A big drop mean
 leaned heavily on that feature; little drop means it barely used it.
 
 ```{python}
-# Permutation importance: shuffle each feature in turn and measure the accuracy it costs.
-# Bigger drop = the model relied on that feature more. (Reuses the Module 1 model + X_val.)
+# Permutation importance: shuffle each feature in turn and
+# measure the accuracy it costs. Bigger drop = the model
+# relied on that feature more. (Reuses the Module 1 model +
+# X_val.)
 ```
 
 Now you can answer "why did the model decide that?" in plain language: "it flags a booking
@@ -868,7 +951,8 @@ make-or-break communication skill of the whole course.
 > business impact, and the main risk, and end with a one-line plain-English "why."
 
 ```{python}
-# Scratch space for 4.2 -- paste your threshold's precision/recall and the top features here.
+# Scratch space for 4.2 -- paste your threshold's
+# precision/recall and the top features here.
 ```
 
 > **GenAI tip:** Check the draft against what the model actually showed: the numbers, and
@@ -900,15 +984,19 @@ flowchart LR
 
 ```{python}
 #| eval: false
-# Export the trained Module 1 cancellation model as a TensorFlow SavedModel.
-# `model.export()` writes a TF SavedModel regardless of the active Keras engine.
-model.export("hotel_cancel_savedmodel")     # -> a folder a serving stack can load
+# Export the trained Module 1 cancellation model as a
+# TensorFlow SavedModel. `model.export()` writes a TF
+# SavedModel regardless of the active Keras engine.
+# -> a folder a serving stack can load
+model.export("hotel_cancel_savedmodel")
 
-# Reload it the way a deployment/serving environment would, then predict.
+# Reload it the way a deployment/serving environment would,
+# then predict.
 import tensorflow as tf
 reloaded = tf.saved_model.load("hotel_cancel_savedmodel")
 serving = reloaded.signatures["serving_default"]
-print("Served predictions:", serving(tf.constant(X_val[:3], dtype=tf.float32)))
+print("Served predictions:",
+      serving(tf.constant(X_val[:3], dtype=tf.float32)))
 ```
 
 > **Why a SavedModel:** it bundles the network *and* its trained weights into a
