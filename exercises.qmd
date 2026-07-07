@@ -352,11 +352,21 @@ print("Regression features:", X_reg.shape)
 ```
 
 ```{python}
-# We'll build this together. Two choices flip this from a
-# classifier to a REGRESSION model -- notice each one as we
-# go: * the output Dense layer has NO activation, so it can
-# predict ANY dollar amount * the loss is "mse" (mean
-# squared error), which measures how many dollars off we are
+# STEP 1 -- Build the model. We'll do this together. Two
+# choices flip it from a classifier to a REGRESSION model,
+# so code each one:
+#   * the output Dense layer has NO activation, so it can
+#     predict ANY dollar amount (not squashed to 0-1)
+#   * compile with loss "mse" (mean squared error) and
+#     metrics ["mae"], so the score reads as dollars off
+# Same body as the classifier (Dense 32 -> Dense 16), then a
+# Dense(1) output. Name it reg_model, then compile it.
+```
+
+```{python}
+# STEP 2 -- Train and report. Fit reg_model on the regression
+# split for a few epochs, then print the validation MAE --
+# on average, how many dollars off the price predictions are.
 ```
 
 ```{python}

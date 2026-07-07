@@ -447,7 +447,15 @@ X_reg_train, X_reg_val, y_reg_train, y_reg_val = train_test_split(
 reg_mean, reg_std = X_reg_train.mean(0), X_reg_train.std(0) + 1e-8
 X_reg_train = (X_reg_train - reg_mean) / reg_std
 X_reg_val = (X_reg_val - reg_mean) / reg_std
+```
 
+```{python}
+# STEP 1 -- Build the model. Two choices flip it from a
+# classifier to a REGRESSION model:
+#   * the output Dense layer has NO activation, so it can
+#     predict any dollar amount (not squashed to 0-1)
+#   * compile with loss "mse" and metrics ["mae"], so the
+#     score reads as dollars off
 reg_model = keras.Sequential([
     keras.layers.Input(shape=(X_reg.shape[1],)),
     keras.layers.Dense(32, activation="relu"),
@@ -457,6 +465,11 @@ reg_model = keras.Sequential([
 ])
 reg_model.compile(optimizer="adam", loss="mse",
                   metrics=["mae"])
+```
+
+```{python}
+# STEP 2 -- Train and report the validation MAE (dollars off,
+# on average)
 reg_hist = reg_model.fit(
     X_reg_train, y_reg_train,
     validation_data=(X_reg_val, y_reg_val), epochs=10,
