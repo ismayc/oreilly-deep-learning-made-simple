@@ -29,3 +29,6 @@ _deck-images/
 *.icloud
 
 archive/
+
+# Instructor run-sheets (local working files, not committed)
+run-sheets/
