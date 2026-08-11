@@ -45,9 +45,6 @@ import pandas as pd
 
 # Display all columns and all outputs from each cell
 pd.set_option("display.max_columns", None)
-from IPython.core.interactiveshell import InteractiveShell
-InteractiveShell.ast_node_interactivity = "all"
-
 keras.utils.set_random_seed(2026)
 print("Keras", keras.__version__, "on backend:",
       keras.backend.backend())
