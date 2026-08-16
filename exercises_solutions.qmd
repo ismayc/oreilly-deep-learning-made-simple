@@ -177,7 +177,7 @@ hotels[["hotel", "lead_time", "adults", "previous_cancellations",
 ```
 
 <details>
-<summary><strong>Data dictionary</strong> (click to expand) — the hotel-booking columns we use</summary>
+<summary><strong>Data dictionary</strong> (click to expand): the hotel-booking columns we use</summary>
 
 | Column | Type | What it stores |
 |---|---|---|

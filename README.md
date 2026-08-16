@@ -8,7 +8,7 @@ notebooks include a few TensorFlow touchpoints: the one-line backend switch, the
 TF-powered `TextVectorization` layer, a TensorFlow **SavedModel** export for deployment,
 and a `tf.keras` reference model in the solutions.
 
-## Run it in Google Colab (recommended — nothing to install)
+## Run it in Google Colab (recommended: nothing to install)
 
 The fastest way to follow along is Google Colab. Open the student notebook directly:
 
@@ -21,29 +21,29 @@ cell runs, so the notebook is fully self-contained:
 
 | Module | Data | How it loads |
 |---|---|---|
-| 1 — Neural networks (tabular) | Hotel bookings | `pd.read_csv("https://raw.githubusercontent.com/...hotels.csv")` |
-| 2 — Images | Food-101 | `load_dataset("ethz/food101", streaming=True)` (Hugging Face) |
-| 3 — Text | Yelp reviews | `load_dataset("fancyzhx/yelp_polarity", streaming=True)` (Hugging Face) |
+| 1: Neural networks (tabular) | Hotel bookings | `pd.read_csv("https://raw.githubusercontent.com/...hotels.csv")` |
+| 2: Images | Food-101 | `load_dataset("ethz/food101", streaming=True)` (Hugging Face) |
+| 3: Text | Yelp reviews | `load_dataset("fancyzhx/yelp_polarity", streaming=True)` (Hugging Face) |
 
 In Colab:
 
 1. Run the first cell (`pip install`). If Colab asks to **restart the runtime**, do it,
-   then run from the top — the `KERAS_BACKEND=torch` line must run before `import keras`.
+   then run from the top. The `KERAS_BACKEND=torch` line must run before `import keras`.
 2. For Module 2 (image transfer learning), switch to a GPU via
    **Runtime → Change runtime type → GPU**. CPU works too, just slower.
 
 ## Course content
 
-- `exercises.ipynb` — the **student** notebook: walkthroughs are worked examples to run
+- `exercises.ipynb`: the **student** notebook. Walkthroughs are worked examples to run
   and discuss; the exercises leave the instructive choices open for live coding.
-- `exercises_solutions.ipynb` — full solutions, with Keras **and** idiomatic PyTorch for
+- `exercises_solutions.ipynb`: full solutions, with Keras **and** idiomatic PyTorch for
   every example. A rendered HTML version is the recommended way to read the solutions:
   **https://ismay-oreilly-dlms.netlify.app/exercises_solutions.html**
-- `exercises.qmd` / `exercises_solutions.qmd` — the Quarto sources the notebooks are
+- `exercises.qmd` / `exercises_solutions.qmd`: the Quarto sources the notebooks are
   built from.
-- `slides.pdf` — the slide deck used to motivate the code.
-- `index.html` — landing page (served at the site root): https://ismay-oreilly-dlms.netlify.app
-- `requirements.txt` — packages for running locally (Colab already has most of these).
+- `slides.pdf`: the slide deck used to motivate the code.
+- `index.html`: landing page (served at the site root): https://ismay-oreilly-dlms.netlify.app
+- `requirements.txt`: packages for running locally (Colab already has most of these).
 
 ### Rebuilding the notebooks from source
 
