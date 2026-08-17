@@ -56,7 +56,7 @@ print("Keras", keras.__version__, "on backend:",
 
 In this course we use **Keras 3**, a friendly, high-level deep learning API,
 running on the **PyTorch** backend. You write simple Keras code; PyTorch does the
-heavy lifting underneath. The solutions file also includes an **idiomatic PyTorch**
+computation underneath. The solutions file also includes an **idiomatic PyTorch**
 version of every walkthrough so you can see what the same model looks like in raw
 PyTorch.
 
@@ -147,7 +147,7 @@ print("Column means:", keras.ops.mean(x, axis=0))
 ## Exercise: Confirm Your Environment
 
 ```{python}
-# Build a tiny one-line "model" and run data through it --
+# Build a tiny one-line "model" and run data through it:
 # proves the stack works
 layer = keras.layers.Dense(1, activation="sigmoid")
 out = layer(keras.ops.array([[0.5, -1.2, 3.0]]))
@@ -325,7 +325,7 @@ flowchart TD
 ```
 
 ```{python}
-# Data prep is the same recipe as the walkthrough -- run it
+# Data prep is the same recipe as the walkthrough: run it
 # and move on.
 reg_features = hotels[features].copy()
 adr_price = hotels["adr"].astype("float32")
@@ -349,7 +349,7 @@ print("Regression features:", X_reg.shape)
 ```
 
 ```{python}
-# STEP 1 -- Build the model. We'll do this together. Two
+# STEP 1: Build the model. We'll do this together. Two
 # choices flip it from a classifier to a REGRESSION model,
 # so code each one:
 #   * the output Dense layer has NO activation, so it can
@@ -361,8 +361,8 @@ print("Regression features:", X_reg.shape)
 ```
 
 ```{python}
-# STEP 2 -- Train and report. Fit reg_model on the regression
-# split for a few epochs, then print the validation MAE --
+# STEP 2: Train and report. Fit reg_model on the regression
+# split for a few epochs, then print the validation MAE:
 # on average, how many dollars off the price predictions are.
 ```
 
@@ -399,7 +399,7 @@ haven't re-run).
 > sentence each what my hidden Dense layers and the sigmoid output layer are doing.
 
 ```{python}
-# Scratch space for 1.2 -- paste an error or a model summary
+# Scratch space for 1.2: paste an error or a model summary
 # here and work with your AI assistant. (Nothing to run yet;
 # this cell is yours to experiment in.)
 ```
@@ -497,7 +497,7 @@ for row in samples[:4]:
 ```
 
 ```{python}
-# Show the images with the model's guess -- seeing the
+# Show the images with the model's guess: seeing the
 # picture makes the result land
 import matplotlib.pyplot as plt
 fig, axes = plt.subplots(1, 4, figsize=(12, 3.2))
@@ -545,7 +545,7 @@ flowchart LR
 # for our 3-class problem
 
 
-# Build a small labeled set (~120 images each) -- run this
+# Build a small labeled set (~120 images each): run this
 # to assemble your data.
 ```
 
@@ -589,7 +589,7 @@ use case. Then test, don't just trust.
 > the model smaller or faster, and describe the trade-offs of each.
 
 ```{python}
-# Scratch space for 2.2 -- paste clf.summary() output here,
+# Scratch space for 2.2: paste clf.summary() output here,
 # or try a suggested tweak.
 ```
 
@@ -768,7 +768,7 @@ flowchart TD
 ```{python}
 # Lever to pull: a BIGGER vocabulary and a LONGER window.
 # Run it, then compare the validation accuracy to the
-# walkthrough -- more capacity doesn't always win.
+# walkthrough: more capacity doesn't always win.
 # <- try other sizes and see
 BIG_VOCAB_SIZE, BIG_MAX_LEN = 15000, 200
 big_vocab = build_vocab(texts, BIG_VOCAB_SIZE)
@@ -819,7 +819,7 @@ raw numbers into a short narrative two different audiences can act on.
 > data analyst.
 
 ```{python}
-# Scratch space for 3.2 -- assemble the numbers/examples
+# Scratch space for 3.2: assemble the numbers/examples
 # you'll paste into your assistant.
 ```
 
@@ -958,7 +958,7 @@ make-or-break communication skill of the whole course.
 > business impact, and the main risk, and end with a one-line plain-English "why."
 
 ```{python}
-# Scratch space for 4.2 -- paste your threshold's
+# Scratch space for 4.2: paste your threshold's
 # precision/recall and the top features here.
 ```
 
