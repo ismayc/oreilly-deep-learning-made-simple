@@ -377,7 +377,7 @@ plt.xlim(lim); plt.ylim(lim)
 plt.xlabel("actual ADR ($)")
 plt.ylabel("predicted ADR ($)")
 plt.legend()
-plt.title("Where the price model is tight -- and where it drifts")
+plt.title("Where the price model is tight, and where it drifts")
 plt.show()
 ```
 

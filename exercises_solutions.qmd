@@ -486,7 +486,7 @@ plt.xlim(lim); plt.ylim(lim)
 plt.xlabel("actual ADR ($)")
 plt.ylabel("predicted ADR ($)")
 plt.legend()
-plt.title("Where the price model is tight -- and where it drifts")
+plt.title("Where the price model is tight, and where it drifts")
 plt.show();
 ```
 
@@ -1160,7 +1160,7 @@ print(f"Majority-class baseline (always 'not canceled'): {baseline:.1%} accuracy
 cm = confusion_matrix(y_val, preds)
 ConfusionMatrixDisplay(cm, display_labels=["not canceled", "canceled"]).plot(
     cmap="Blues", colorbar=False)
-plt.title("Where the model is right -- and wrong")
+plt.title("Where the model is right, and wrong")
 plt.show()
 
 print("Precision:", round(precision_score(y_val, preds), 3),
