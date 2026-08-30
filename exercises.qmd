@@ -409,7 +409,7 @@ haven't re-run).
 
 ### Interpretation Questions
 
-1. The classification model reaches ~78-80% accuracy. With ~63% of bookings *not*
+1. The classification model reaches ~75-76% accuracy. With ~63% of bookings *not*
    canceled, is that a strong result? (Hint: what would "always predict not-canceled"
    score? We dig into this in Module 4.)
 2. The regression model's MAE is in **dollars**. Is being off by that much acceptable
@@ -529,7 +529,7 @@ on your few categories.
 %%| fig-align: center
 %%{init: {'theme': 'base', 'themeVariables': {'fontSize': '16px'}}}%%
 flowchart LR
-  V["Pre-trained base (FROZEN)<br/>vision from<br/>millions of images"]:::frozen --> NH["New head you train<br/>on YOUR 360 images"]:::accent
+  V["Pre-trained base (FROZEN)<br/>vision from<br/>millions of images"]:::frozen --> NH["New head you train<br/>on YOUR 270 training photos"]:::accent
   NH --> OUT[/"pizza /<br/>burger /<br/>sushi"/]:::good
   classDef frozen fill:#dbe9ff,stroke:#1a73e8,stroke-width:3px,color:#1a1a1a
   classDef accent fill:#ede0ff,stroke:#6a1b9a,color:#1a1a1a

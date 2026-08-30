@@ -1,12 +1,12 @@
 # Materials for the course "Deep Learning for Business Made Simple" for O'Reilly by Dr. Chester Ismay
 
-This course teaches deep learning with **Keras 3 running on the PyTorch backend** --
+This course teaches deep learning with **Keras 3 running on the PyTorch backend**:
 friendly, high-level code on top of a production-grade engine. The solutions also show
 each model written in **idiomatic PyTorch** for learners who want the lower-level view.
 Because Keras 3 is engine-agnostic, the *same* code also runs on **TensorFlow**, and the
 notebooks include a few TensorFlow touchpoints: the one-line backend switch, the
-TF-powered `TextVectorization` layer, a TensorFlow **SavedModel** export for deployment,
-and a `tf.keras` reference model in the solutions.
+TF-powered `TextVectorization` layer, and a TensorFlow **SavedModel** export for
+deployment.
 
 ## Run it in Google Colab (recommended: nothing to install)
 
