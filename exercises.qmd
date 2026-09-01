@@ -119,7 +119,7 @@ Keras can also target: `tensorflow`, `torch`, and `jax`.
 > team standardizes on TensorFlow (or JAX) later, your Keras code comes along, only the
 > one-line engine setting changes.
 
-## Walkthrough: Setting Up Keras (PyTorch backend) and Your First Tensor
+## Walkthrough 0.1: Setting Up Keras (PyTorch backend) and Your First Tensor
 
 ### Confirm the environment
 
@@ -144,7 +144,7 @@ print("Sum of all elements:", float(keras.ops.sum(x)))
 print("Column means:", keras.ops.mean(x, axis=0))
 ```
 
-## Exercise: Confirm Your Environment
+## Exercise 0.1: Confirm Your Environment
 
 ```{python}
 # Build a tiny one-line "model" and run data through it:
