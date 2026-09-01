@@ -4,6 +4,11 @@ name: Render solutions HTML
 # commit it, so Netlify (linked to this repo's main branch) can serve it. Rendering
 # EXECUTES the notebook (Keras 3 on the PyTorch backend), so it runs in CI rather
 # than relying on a local machine. Runs when the source changes, or on demand.
+#
+# Every run also uploads the rendered HTML as a downloadable workflow artifact, so
+# the Linux-rendered result can be pulled to a laptop without going through a
+# commit. Use scripts/ci-render.sh, or `gh run download <run-id> -n solutions-html`.
+# A run dispatched from a branch other than main uploads only; it does not commit.
 
 on:
   push:
@@ -53,7 +58,16 @@ jobs:
           QUARTO_PYTHON: python3
         run: quarto render exercises_solutions.qmd --to html
 
+      - name: Upload solutions HTML as a downloadable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: solutions-html
+          path: exercises_solutions.html
+          retention-days: 14
+          if-no-files-found: error
+
       - name: Commit & push solutions HTML if it changed
+        if: github.ref == 'refs/heads/main'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

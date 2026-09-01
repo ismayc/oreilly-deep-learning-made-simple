@@ -40,3 +40,6 @@ ta-sources-extra/
 ollama-ta-log/
 persona.md
 prep_qa.md*
+
+# CI render results pulled down by scripts/ci-render.sh (local working copy)
+ci-render-out/
