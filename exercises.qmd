@@ -753,13 +753,13 @@ plt.show()
 ## Exercise 3.1: Improve and Stress-Test the Model
 
 ```{mermaid}
-%%| fig-cap: "Averaging word vectors ignores order, so 'not great' can look positive."
+%%| fig-cap: "Averaging word vectors throws away order, so the 'not' no longer flips the word after it."
 %%| fig-align: center
 %%{init: {'theme': 'base', 'themeVariables': {'fontSize': '16px'}}}%%
 flowchart TD
   N[/"word:<br/>'not'"/]:::proc --> AV["Averaged together<br/>(word order is lost)"]:::accent
   G[/"word:<br/>'great'"/]:::proc --> AV
-  AV --> R[/"Looks POSITIVE<br/>it only saw 'great'"/]:::bad
+  AV --> R[/"One blended vector<br/>the 'not' can't flip it"/]:::bad
   classDef proc fill:#dbe9ff,stroke:#1a73e8,color:#1a1a1a
   classDef accent fill:#ede0ff,stroke:#6a1b9a,color:#1a1a1a
   classDef bad fill:#fde0e0,stroke:#c62828,color:#1a1a1a
